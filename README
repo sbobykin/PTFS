@@ -1,0 +1,21 @@
+PTFS - is a file system allowing to navigate through parse tree. 
+Essential parameters for mounting is a file with some text and a grammar
+(describing the structure of input text).
+
+Note: currently, PTFS is at the early stage of development so
+      it is very unstable.
+
+To build, run:
+	cmake .
+	make
+
+To install, run:
+	make install
+
+Usage example (mounting new parse tree):
+	ptfs -g examples/grammar -i examples/text  mountpoint
+For umount use:
+	fusermount -u mointpoint
+
+Project contributor: Stanislav Bobykin.
+Contact e-mail: sbobykin@gmail.com
