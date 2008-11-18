@@ -113,7 +113,14 @@ static int hello_getattr(const char *path, struct stat *stbuf)
 {
 	int res = 0;
 	memset(stbuf, 0, sizeof(struct stat));
-	stbuf->st_mode = S_IFDIR | 0755;
+	int len = strlen(path);
+	if (strcmp(path + len - 4, "text") == 0) {
+		stbuf->st_mode = S_IFREG | 0444;
+		stbuf->st_nlink = 1;
+		stbuf->st_size = ntok;
+	}
+	else
+		stbuf->st_mode = S_IFDIR | 0755;
 
 
 	return res;
@@ -145,6 +152,7 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
+	filler(buf, "text", NULL, 0);
 	for(i = 0; i < cur_node->childs_num; i++) {
 		if(cur_node->childs[i]->type)
 			snprintf(str+i, 2048, "/%.2d_T_%s", i, 
@@ -160,11 +168,31 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
+static int hello_read(const char *path, char *buf, size_t size, off_t offset,
+                      struct fuse_file_info *fi)
+{
+	size_t len;
+	(void) fi;
+
+	len = ntok;
+	if (offset < len) {
+		if (offset + size > len)
+	    		size = len - offset;
+
+		memcpy(buf, input + offset, size);
+	} 
+	else
+		size = 0;
+
+	return size;
+}
+
+
 static struct fuse_operations hello_oper = {
 	.getattr = hello_getattr,
 	.readdir = hello_readdir,
 	//.open	= hello_open,
-	//.read	= hello_read,
+	.read	= hello_read,
 };
 
 static char* map_file_to_str (char* pathname)
