@@ -107,7 +107,48 @@ void print_version()
 	printf("ptfs version 0.0.1.0\n");
 }
 
+static void map_subtext_to_tree () 
+{
+	int next;
+	int end;
+	struct pt_node* cur_node;
+	pt_root_node->b = 0;
+	pt_root_node->e = 0;
+	cur_node = pt_root_node;
 
+	do {
+		if(cur_node->type) {
+			//cur_node->b = cur_node->parent->b;
+			end = cur_node->b + 1;
+			cur_node->e = end;
+			printf("TERM: %s b: %d\n", cur_node->repr, cur_node->b);
+			while( cur_node->parent->e == cur_node->parent->childs_num) {
+
+				cur_node = cur_node->parent;
+				cur_node->e = end;
+				printf("NTERM_UP, END_POS: %s, %d\n", cur_node->repr, cur_node->e);
+				if(cur_node->parent == NULL)
+					break;
+
+			}
+
+			if(cur_node->parent != NULL) {
+				next = cur_node->parent->e;
+				cur_node->parent->e++;
+				cur_node = cur_node->parent->childs[next];
+				cur_node->b = end;
+				printf("hi repr: %s\n", cur_node->repr);
+			}
+			printf("end: %d\n", end);
+		}
+		else {
+			printf("NTERM: %s\n", cur_node->repr);
+			cur_node = cur_node->childs[cur_node->e];
+			cur_node->parent->e++;
+			cur_node->b = cur_node->parent->b;
+		}
+	} while (cur_node->parent != NULL);
+}
 
 static int hello_getattr(const char *path, struct stat *stbuf)
 {
@@ -311,8 +352,11 @@ int main(int argc, char** argv)
 				earley_error_message (g));
 		exit(-1);
 	}
+	
+	map_subtext_to_tree ();
+	printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
 
-	fuse_main(args.argc, args.argv, &hello_oper);
+	//fuse_main(args.argc, args.argv, &hello_oper);
 	
 	fuse_opt_free_args(&args);
 	

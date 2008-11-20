@@ -33,6 +33,8 @@ struct pt_node {
 	int childs_num;
 	char* repr;
 	int type;
+	int b;
+	int e;
 };
 
 struct pt_node* pt_node;
