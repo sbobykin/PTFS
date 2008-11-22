@@ -1,5 +1,5 @@
 PTFS - is a file system allowing to navigate through parse tree. 
-Essential parameters for mounting is a file with some text and a grammar
+Essential parameters for mounting are a file with some text and a grammar
 (describing the structure of input text).
 
 Note: currently, PTFS is at the early stage of development so

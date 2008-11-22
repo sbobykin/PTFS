@@ -187,9 +187,10 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 				break;
 			}
 		}
+		if(i == cur_node->childs_num)
+			return -1;
 		tok = strtok(NULL, "/");
 	}
-
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
@@ -353,10 +354,10 @@ int main(int argc, char** argv)
 		exit(-1);
 	}
 	
-	map_subtext_to_tree ();
-	printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
+	//map_subtext_to_tree ();
+	//printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
 
-	//fuse_main(args.argc, args.argv, &hello_oper);
+	fuse_main(args.argc, args.argv, &hello_oper);
 	
 	fuse_opt_free_args(&args);
 	
