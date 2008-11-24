@@ -107,11 +107,12 @@ void print_version()
 	printf("ptfs version 0.0.1.0\n");
 }
 
-static void map_subtext_to_tree () 
+static void map_nodes_to_subtext () 
 {
 	int next;
 	int end;
 	struct pt_node* cur_node;
+	struct pt_node* cur_tmp_node;
 	pt_root_node->b = 0;
 	pt_root_node->e = 0;
 	cur_node = pt_root_node;
@@ -119,14 +120,19 @@ static void map_subtext_to_tree ()
 	do {
 		if(cur_node->type) {
 			//cur_node->b = cur_node->parent->b;
-			end = cur_node->b + 1;
+			if(cur_node->type == 1)
+				end = cur_node->b + 1;
+			else {
+				//cur_node->type = 1;
+				end = cur_node->b;
+			}
 			cur_node->e = end;
-			printf("TERM: %s b: %d\n", cur_node->repr, cur_node->b);
+			//printf("TERM: %s b: %d\n", cur_node->repr, cur_node->b);
 			while( cur_node->parent->e == cur_node->parent->childs_num) {
 
 				cur_node = cur_node->parent;
 				cur_node->e = end;
-				printf("NTERM_UP, END_POS: %s, %d\n", cur_node->repr, cur_node->e);
+				//printf("NTERM_UP, END_POS: %s, %d\n", cur_node->repr, cur_node->e);
 				if(cur_node->parent == NULL)
 					break;
 
@@ -136,15 +142,26 @@ static void map_subtext_to_tree ()
 				next = cur_node->parent->e;
 				cur_node->parent->e++;
 				cur_node = cur_node->parent->childs[next];
+				//printf("hi repr: %s\n", cur_node->repr);
 				cur_node->b = end;
-				printf("hi repr: %s\n", cur_node->repr);
 			}
-			printf("end: %d\n", end);
+			//printf("end: %d\n", end);
 		}
 		else {
-			printf("NTERM: %s\n", cur_node->repr);
+			//printf("NTERM: %s, %d\n", cur_node->repr, cur_node->e);
+			if(cur_node->childs_num == 0) {
+				//printf("ch_num: %d\n", cur_node->childs_num);
+				cur_node->childs = malloc( sizeof(struct pt_node*) );
+				cur_node->childs[0] = malloc( sizeof(struct pt_node) );
+				cur_node->childs[0]->parent = cur_node; 
+				cur_node->childs[0]->type = 2;
+				cur_node->childs[0]->repr = malloc( 2*sizeof(char) );
+				snprintf(cur_node->childs[0]->repr, 2, "e");
+				cur_node->childs_num = 1;
+			}
 			cur_node = cur_node->childs[cur_node->e];
 			cur_node->parent->e++;
+			//printf("hii\n");
 			cur_node->b = cur_node->parent->b;
 		}
 	} while (cur_node->parent != NULL);
@@ -187,7 +204,7 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 				break;
 			}
 		}
-		if(i == cur_node->childs_num)
+		if(i == cur_node->childs_num && i != 0 && i != 1)
 			return -1;
 		tok = strtok(NULL, "/");
 	}
@@ -216,17 +233,27 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 	size_t len;
 	(void) fi;
 
-	len = ntok;
-	if (offset < len) {
-		if (offset + size > len)
-	    		size = len - offset;
+	int i;
 
-		memcpy(buf, input + offset, size);
-	} 
-	else
-		size = 0;
+	char* tok;
+	struct pt_node* cur_node = pt_root_node;
 
-	return size;
+	tok = strtok(path, "/");
+	while(tok) {
+		for(i = 0; i < cur_node->childs_num; i++) {
+			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
+				cur_node = cur_node->childs[i];
+				break;
+			}
+		}
+		tok = strtok(NULL, "/");
+	}
+
+	len = cur_node->e - cur_node->b;
+	memcpy(buf, input + cur_node->b, len);
+	buf[len] = '\n';
+
+	return len+1;
 }
 
 
@@ -354,7 +381,9 @@ int main(int argc, char** argv)
 		exit(-1);
 	}
 	
-	//map_subtext_to_tree ();
+
+	map_nodes_to_subtext ();
+	printf("%s\n", pt_root_node->childs[1]->childs[0]->repr);
 	//printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
 
 	fuse_main(args.argc, args.argv, &hello_oper);

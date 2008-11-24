@@ -1,14 +1,26 @@
-expr:	  expr '+' term
+expr:	  expr SP '+' SP term
 	| term
 	;
 
 term:	  term '*' factor
+	| term '/' factor
 	| factor
 	;
 
-factor:	  digit
+factor:	  number
 	| '(' expr ')'
 	;
 
+number:	  number digit
+	| digit
+
 digit:	  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0'
 	;
+
+SP:	  
+	| SP_NE
+
+SP_NE:	  sp_symb
+	| SP_NE sp_symb
+
+sp_symb:  ' '

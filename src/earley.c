@@ -5140,6 +5140,8 @@ make_parse (int *ambiguous_p)
 	      for(bb = 0; bb < sit_rule->rhs_len; bb++) {
 		pt_node->childs[bb] = malloc ( sizeof(struct pt_node) );
 		pt_node->childs[bb]->parent = pt_node;
+		pt_node->childs[bb]->e = 0;
+		pt_node->childs[bb]->b = 0;
 		if(sit_rule->rhs[bb]->term_p) {
 		  //printf(" t(%s)", sit_rule->rhs[bb]->repr);
 		  //printf(" '%c'", sit_rule->rhs[bb]->u.term.code);
