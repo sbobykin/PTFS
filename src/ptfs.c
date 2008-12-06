@@ -83,6 +83,10 @@ static const char *description;
 #define TRUE 1
 #endif
 
+#define isDir 1
+#define isText 2
+#define unknown 0
+
 static int ntok;
 static os_t mem_os;
 
@@ -167,6 +171,40 @@ static void map_nodes_to_subtext ()
 	} while (cur_node->parent != NULL);
 }
 
+int get_node(char* path, struct pt_node** node)
+{
+	int i;
+	int cur_childs_num;
+	int status;
+	char* tok;
+	struct pt_node* cur_node = pt_root_node;
+
+	tok = strtok(path, "/");
+	while(tok) {
+		cur_childs_num = cur_node->childs_num;
+		for(i = 0; i < cur_childs_num; i++) {
+			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
+				cur_node = cur_node->childs[i];
+				break;
+			}
+		}
+
+		if(i == cur_childs_num) {
+			if(strcmp(tok, "text"))
+				status = isText;
+			else
+				status = unknown;
+			goto out;
+		}
+		tok = strtok(NULL, "/");
+	}
+	status = isDir;
+
+out:
+	*node = cur_node;
+	return status;
+}
+
 static int hello_getattr(const char *path, struct stat *stbuf)
 {
 	int res = 0;
@@ -184,15 +222,18 @@ static int hello_getattr(const char *path, struct stat *stbuf)
 	return res;
 }
 
-static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, struct fuse_file_info *fi)
 {
 	int i;
 
 	(void) offset;
 	(void) fi;
+	struct pt_node* cur_node;
+	char str[2048];
+	int status;
 
-	char* tok;
+/*	char* tok;
 	struct pt_node* cur_node = pt_root_node;
 	char str[2048];
 
@@ -207,7 +248,11 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		if(i == cur_node->childs_num && i != 0 && i != 1)
 			return -1;
 		tok = strtok(NULL, "/");
-	}
+	}*/
+
+	status = get_node(path, &cur_node);
+	if(status != isDir)
+		return -ENOTDIR;
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
@@ -259,7 +304,7 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 
 static struct fuse_operations hello_oper = {
 	.getattr = hello_getattr,
-	.readdir = hello_readdir,
+	.readdir = ptfs_readdir,
 	//.open	= hello_open,
 	.read	= hello_read,
 };
@@ -383,7 +428,7 @@ int main(int argc, char** argv)
 	
 
 	map_nodes_to_subtext ();
-	printf("%s\n", pt_root_node->childs[1]->childs[0]->repr);
+	//printf("%s\n", pt_root_node->childs[1]->childs[0]->repr);
 	//printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
 
 	fuse_main(args.argc, args.argv, &hello_oper);
