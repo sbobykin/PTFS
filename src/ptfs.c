@@ -190,7 +190,7 @@ int get_node(char* path, struct pt_node** node)
 		}
 
 		if(i == cur_childs_num) {
-			if(strcmp(tok, "text"))
+			if(strcmp(tok, "text") == 0)
 				status = isText;
 			else
 				status = unknown;
@@ -205,54 +205,52 @@ out:
 	return status;
 }
 
-static int hello_getattr(const char *path, struct stat *stbuf)
+static int ptfs_getattr(const char *path, struct stat *stbuf)
 {
-	int res = 0;
+	int retval;
+	int status;
+	struct pt_node* cur_node;
+	retval = 0;
+	
 	memset(stbuf, 0, sizeof(struct stat));
-	int len = strlen(path);
-	if (strcmp(path + len - 4, "text") == 0) {
+
+	status = get_node(path, &cur_node);
+	switch(status) {
+	case isText:
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
-		stbuf->st_size = ntok;
-	}
-	else
+		stbuf->st_size = cur_node->e - cur_node->b + 1;
+		break;
+	case isDir:
 		stbuf->st_mode = S_IFDIR | 0755;
+		break;
+	default:
+		retval = -ENOENT;
 
+	}
 
-	return res;
+	return retval;
 }
 
 static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, struct fuse_file_info *fi)
 {
-	int i;
-
 	(void) offset;
 	(void) fi;
+
+	int i;
 	struct pt_node* cur_node;
 	char str[2048];
 	int status;
+	int retval;
 
-/*	char* tok;
-	struct pt_node* cur_node = pt_root_node;
-	char str[2048];
-
-	tok = strtok(path, "/");
-	while(tok) {
-		for(i = 0; i < cur_node->childs_num; i++) {
-			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
-				cur_node = cur_node->childs[i];
-				break;
-			}
-		}
-		if(i == cur_node->childs_num && i != 0 && i != 1)
-			return -1;
-		tok = strtok(NULL, "/");
-	}*/
+	retval = 0;
 
 	status = get_node(path, &cur_node);
-	if(status != isDir)
-		return -ENOTDIR;
+	if(status != isDir) {
+		retval = -ENOENT;
+		goto out;
+	}
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
@@ -268,11 +266,11 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		filler(buf, str+i+1, NULL, 0);
 	}
 
-
-	return 0;
+out:
+	return retval;
 }
 
-static int hello_read(const char *path, char *buf, size_t size, off_t offset,
+static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
                       struct fuse_file_info *fi)
 {
 	size_t len;
@@ -298,15 +296,15 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 	memcpy(buf, input + cur_node->b, len);
 	buf[len] = '\n';
 
-	return len+1;
+	return len + 1;
 }
 
 
 static struct fuse_operations hello_oper = {
-	.getattr = hello_getattr,
+	.getattr = ptfs_getattr,
 	.readdir = ptfs_readdir,
 	//.open	= hello_open,
-	.read	= hello_read,
+	.read	= ptfs_read,
 };
 
 static char* map_file_to_str (char* pathname)
@@ -428,8 +426,6 @@ int main(int argc, char** argv)
 	
 
 	map_nodes_to_subtext ();
-	//printf("%s\n", pt_root_node->childs[1]->childs[0]->repr);
-	//printf("test: %d - %d\n", pt_root_node->b, pt_root_node->e);
 
 	fuse_main(args.argc, args.argv, &hello_oper);
 	
