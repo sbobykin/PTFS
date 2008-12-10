@@ -171,7 +171,7 @@ static void map_nodes_to_subtext ()
 	} while (cur_node->parent != NULL);
 }
 
-int get_node(char* path, struct pt_node** node)
+int get_node(const char* path, struct pt_node** node)
 {
 	int i;
 	int cur_childs_num;

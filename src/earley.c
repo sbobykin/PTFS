@@ -5147,11 +5147,30 @@ make_parse (int *ambiguous_p)
 		  //printf(" '%c'", sit_rule->rhs[bb]->u.term.code);
 		  pt_node->childs[bb]->type = 1;
 	      	  pt_node->childs[bb]->childs_num = 0;
-		  if(sit_rule->rhs[bb]->u.term.code != '/')
+		  
+		  /* support for special symbols */
+		  switch(sit_rule->rhs[bb]->u.term.code) 
+		    {
+		      case '/':
+			asprintf(&(pt_node->childs[bb]->repr), "SLASH");
+			break;
+		      case ' ':
+			asprintf(&(pt_node->childs[bb]->repr), "SPACE");
+			break;
+		      case '\n':
+			asprintf(&(pt_node->childs[bb]->repr), "NEWLINE");
+			break;
+		      case '\t':
+			asprintf(&(pt_node->childs[bb]->repr), "TAB");
+			break;
+		      default:
+			asprintf(&(pt_node->childs[bb]->repr), "%c", sit_rule->rhs[bb]->u.term.code);	
+		    }
+		  /*if(sit_rule->rhs[bb]->u.term.code != '/')
 		    asprintf(&(pt_node->childs[bb]->repr), "%c", sit_rule->rhs[bb]->u.term.code);
 		  else
 		    asprintf(&(pt_node->childs[bb]->repr), "SLASH");
-		    
+		    */
 
 		}
 		else {

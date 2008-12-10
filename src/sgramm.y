@@ -31,8 +31,8 @@
  PTFS note.
  Date: 2008-11-14.
  
- This file is slightly modified to avoid transition 
- symbols from a grammar by Stanislav Bobykin.
+ This file is slightly modified to avoid 'trans'
+ section from a grammar by Stanislav Bobykin.
  To find modifications use 'ptfs' keyword.
 
  Original file (AMMUNITION/sgramm.y) is from cocom distribution version 0.996.
@@ -228,7 +228,26 @@ seq : seq IDENT
 	  struct sterm term;
 	  
 	  term.repr = (char *) $2;
-	  term.code = term.repr [1];
+	  /* ptfs (BEGIN): support for special symbols */
+	  if(term.repr[1] == '\\') 
+	    {
+	      switch(term.repr[2])
+		{
+		  case 'n':
+		    term.code = '\n';
+		    break;
+		  case 't':
+		    term.code = '\t';
+		    break;
+		  default:
+		    term.code = term.repr[2];
+		}
+	    }
+	  /* ptfs (END) */
+	  else
+	    {
+	      term.code = term.repr [1];
+	    }
           term.num = VLO_LENGTH (sterms) / sizeof (term);
 	  VLO_ADD_MEMORY (sterms, &term, sizeof (term));
 	  OS_TOP_ADD_MEMORY (srhs, &term.repr, sizeof (term.repr));
@@ -353,6 +372,11 @@ yylex (void)
 	  return c;
 	case '\'':
 	  OS_TOP_ADD_BYTE (stoks, '\'');
+	  if(*curr_ch == '\\')
+	    {
+	      curr_ch++;
+	      OS_TOP_ADD_BYTE (stoks, '\\');
+	    }
 	  yylval.num = *curr_ch++;
 	  OS_TOP_ADD_BYTE (stoks, yylval.num);
 	  if (*curr_ch++ != '\'')

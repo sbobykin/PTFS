@@ -2,8 +2,8 @@ expr:	  expr SP '+' SP term
 	| term
 	;
 
-term:	  term '*' factor
-	| term '/' factor
+term:	  term SP '*' SP factor
+	| term SP '/' SP factor
 	| factor
 	;
 
@@ -23,4 +23,4 @@ SP:
 SP_NE:	  sp_symb
 	| SP_NE sp_symb
 
-sp_symb:  ' '
+sp_symb:  ' ' | '\t' | '\n'

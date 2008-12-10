@@ -84,7 +84,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 30 "sgramm.y"
+#line 42 "sgramm.y"
 
 
 #include <ctype.h>
@@ -199,7 +199,7 @@ extern int yyparse (void);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 125 "sgramm.y"
+#line 137 "sgramm.y"
 {
     void *ref;
     int num;
@@ -505,8 +505,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   139,   139,   140,   141,   142,   145,   146,   149,   158,
-     161,   162,   165,   165,   168,   169,   172,   200,   206,   216
+       0,   151,   151,   152,   153,   154,   157,   158,   161,   170,
+     173,   174,   177,   177,   180,   181,   184,   220,   226,   255
 };
 #endif
 
@@ -1417,7 +1417,7 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 150 "sgramm.y"
+#line 162 "sgramm.y"
     {
 	  struct sterm term;
 	  
@@ -1429,38 +1429,46 @@ yyreduce:
     break;
 
   case 10:
-#line 161 "sgramm.y"
+#line 173 "sgramm.y"
     {(yyval.num) = -1;;}
     break;
 
   case 11:
-#line 162 "sgramm.y"
+#line 174 "sgramm.y"
     {(yyval.num) = (yyvsp[(2) - (2)].num);;}
     break;
 
   case 12:
-#line 165 "sgramm.y"
+#line 177 "sgramm.y"
     {slhs = (char *) (yyvsp[(1) - (1)].ref);;}
     break;
 
   case 16:
-#line 173 "sgramm.y"
+#line 185 "sgramm.y"
     {
 	struct srule rule;
 	int end_marker = -1;
 
+      	/* Modified code for ptfs (BEGIN) */
+
 	//OS_TOP_ADD_MEMORY (strans, &end_marker, sizeof (int));
+
 	rule.lhs = slhs;
+
 	//rule.anode = (char *) $2;
 	rule.anode = "anode";
+	
 	//rule.anode_cost = (rule.anode == NULL ? 0 : anode_cost);
 	rule.anode_cost = 1;
+	
 	rule.rhs_len = OS_TOP_LENGTH (srhs) / sizeof (char *);
 
 	int i;
 	for(i = 0; i < rule.rhs_len; i++)
 	  OS_TOP_ADD_MEMORY (strans, &i, sizeof (int));
 	OS_TOP_ADD_MEMORY (strans, &end_marker, sizeof (int));
+
+	/* Modified code for ptfs (END) */
 	
 	OS_TOP_EXPAND (srhs, sizeof (char *));
 	rule.rhs = (char **) OS_TOP_BEGIN (srhs);
@@ -1473,7 +1481,7 @@ yyreduce:
     break;
 
   case 17:
-#line 201 "sgramm.y"
+#line 221 "sgramm.y"
     {
 	 char *repr = (char *) (yyvsp[(2) - (2)].ref);
 
@@ -1482,12 +1490,31 @@ yyreduce:
     break;
 
   case 18:
-#line 207 "sgramm.y"
+#line 227 "sgramm.y"
     {
 	  struct sterm term;
 	  
 	  term.repr = (char *) (yyvsp[(2) - (2)].ref);
-	  term.code = term.repr [1];
+	  /* ptfs (BEGIN): support for special symbols */
+	  if(term.repr[1] == '\\') 
+	    {
+	      switch(term.repr[2])
+		{
+		  case 'n':
+		    term.code = '\n';
+		    break;
+		  case 't':
+		    term.code = '\t';
+		    break;
+		  default:
+		    term.code = term.repr[2];
+		}
+	    }
+	  /* ptfs (END) */
+	  else
+	    {
+	      term.code = term.repr [1];
+	    }
           term.num = VLO_LENGTH (sterms) / sizeof (term);
 	  VLO_ADD_MEMORY (sterms, &term, sizeof (term));
 	  OS_TOP_ADD_MEMORY (srhs, &term.repr, sizeof (term.repr));
@@ -1496,7 +1523,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 1500 "sgramm.tab.c"
+#line 1527 "sgramm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1710,7 +1737,7 @@ yyreturn:
 }
 
 
-#line 263 "sgramm.y"
+#line 302 "sgramm.y"
 
 
 /* The following is current input character of the grammar
@@ -1784,6 +1811,11 @@ yylex (void)
 	  return c;
 	case '\'':
 	  OS_TOP_ADD_BYTE (stoks, '\'');
+	  if(*curr_ch == '\\')
+	    {
+	      curr_ch++;
+	      OS_TOP_ADD_BYTE (stoks, '\\');
+	    }
 	  yylval.num = *curr_ch++;
 	  OS_TOP_ADD_BYTE (stoks, yylval.num);
 	  if (*curr_ch++ != '\'')
