@@ -159,6 +159,7 @@ static void map_nodes_to_subtext ()
 				cur_node->childs[0] = malloc( sizeof(struct pt_node) );
 				cur_node->childs[0]->parent = cur_node; 
 				cur_node->childs[0]->type = 2;
+				cur_node->childs[0]->childs_num = 0;
 				cur_node->childs[0]->repr = malloc( 2*sizeof(char) );
 				snprintf(cur_node->childs[0]->repr, 2, "e");
 				cur_node->childs_num = 1;
@@ -176,13 +177,16 @@ int get_node(const char* path, struct pt_node** node)
 	int i;
 	int cur_childs_num;
 	int status;
+	char symb_pos[3];
 	char* tok;
 	struct pt_node* cur_node = pt_root_node;
 
 	tok = strtok(path, "/");
 	while(tok) {
 		cur_childs_num = cur_node->childs_num;
-		for(i = 0; i < cur_childs_num; i++) {
+		snprintf(symb_pos, 3, "%s", tok);
+
+		for(i = atoi(symb_pos); i < cur_childs_num; i++) {
 			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
 				cur_node = cur_node->childs[i];
 				break;
