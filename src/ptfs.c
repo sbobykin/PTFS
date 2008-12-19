@@ -108,7 +108,7 @@ Usage: %s -g GRAMMARFILE -i INPUTFILE  mountpoint\n\
 
 void print_version()
 {
-	printf("ptfs version 0.0.1.0\n");
+	printf("ptfs version 0.0.2.0\n");
 }
 
 static void map_nodes_to_subtext () 
