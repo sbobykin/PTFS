@@ -65,7 +65,7 @@ static struct fuse_opt ptfs_opts[] = {
 	PTFS_OPT_KEY("-h", help, 1),
 	PTFS_OPT_KEY("-help", help, 1),
 	PTFS_OPT_KEY("-v", version, 1),
-	PTFS_OPT_KEY("-version", version, 1),
+	PTFS_OPT_KEY("--version", version, 1),
 	PTFS_OPT_KEY("-g %s", grammar, 0),
 	PTFS_OPT_KEY("--grammar=%s", grammar, 0),
 	PTFS_OPT_KEY("-i %s", input, 0),
@@ -109,6 +109,7 @@ Usage: %s -g GRAMMARFILE -i INPUTFILE  mountpoint\n\
 void print_version()
 {
 	printf("ptfs version 0.0.2.0\n");
+	exit(0);
 }
 
 static void map_nodes_to_subtext () 
@@ -382,6 +383,12 @@ int main(int argc, char** argv)
 	if (fuse_opt_parse(&args, &options, ptfs_opts, NULL) == -1)
 		print_usage(stderr, -1);
 	
+	if(options.version)
+		print_version();
+	
+	if(options.help)
+		print_usage(stdout, 0);
+
 	if(options.grammar && options.input) {
 		/* read grammar */
 		description = map_file_to_str(options.grammar);
