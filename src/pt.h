@@ -19,7 +19,7 @@
 /* 
  Date: 2008-11-14.
 
- This file is created by Stanislav Bobykin.
+ This file was created by Stanislav Bobykin.
 */ 
 
 

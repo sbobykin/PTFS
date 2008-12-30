@@ -27,17 +27,28 @@
 
 /* Attention: It is distrubuted under GPL not LGPL. */
 
+
+/*
+  PTFS note.
+  Date: 2008-12-29.
+
+  The code for special symbols support was added by Stanislav Bobykin.
+  To find modifications use 'ptfs' keyword, 
+  and see the section with the note 'support for special symbols'.
+*/
+
 /* 
  PTFS note.
  Date: 2008-11-14.
  
- This file is slightly modified to avoid 'trans'
+ This file was slightly modified to exclude the 'trans'
  section from a grammar by Stanislav Bobykin.
  To find modifications use 'ptfs' keyword.
 
- Original file (AMMUNITION/sgramm.y) is from cocom distribution version 0.996.
- Web site of cocom project: http://cocom.sourceforge.net
+ The original file (AMMUNITION/sgramm.y) is from the cocom distribution version 0.996.
+ The web site of the cocom project: http://cocom.sourceforge.net
 */
+
 
 %{
 
@@ -372,11 +383,13 @@ yylex (void)
 	  return c;
 	case '\'':
 	  OS_TOP_ADD_BYTE (stoks, '\'');
+	  /* ptfs (BEGIN): support for special symbols */
 	  if(*curr_ch == '\\')
 	    {
 	      curr_ch++;
 	      OS_TOP_ADD_BYTE (stoks, '\\');
 	    }
+	  /* ptfs (END) */
 	  yylval.num = *curr_ch++;
 	  OS_TOP_ADD_BYTE (stoks, yylval.num);
 	  if (*curr_ch++ != '\'')

@@ -84,7 +84,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 42 "sgramm.y"
+#line 53 "sgramm.y"
 
 
 #include <ctype.h>
@@ -199,7 +199,7 @@ extern int yyparse (void);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 137 "sgramm.y"
+#line 148 "sgramm.y"
 {
     void *ref;
     int num;
@@ -503,10 +503,10 @@ static const yytype_int8 yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,   151,   151,   152,   153,   154,   157,   158,   161,   170,
-     173,   174,   177,   177,   180,   181,   184,   220,   226,   255
+       0,   162,   162,   163,   164,   165,   168,   169,   172,   181,
+     184,   185,   188,   188,   191,   192,   195,   231,   237,   266
 };
 #endif
 
@@ -1417,7 +1417,7 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 162 "sgramm.y"
+#line 173 "sgramm.y"
     {
 	  struct sterm term;
 	  
@@ -1429,22 +1429,22 @@ yyreduce:
     break;
 
   case 10:
-#line 173 "sgramm.y"
+#line 184 "sgramm.y"
     {(yyval.num) = -1;;}
     break;
 
   case 11:
-#line 174 "sgramm.y"
+#line 185 "sgramm.y"
     {(yyval.num) = (yyvsp[(2) - (2)].num);;}
     break;
 
   case 12:
-#line 177 "sgramm.y"
+#line 188 "sgramm.y"
     {slhs = (char *) (yyvsp[(1) - (1)].ref);;}
     break;
 
   case 16:
-#line 185 "sgramm.y"
+#line 196 "sgramm.y"
     {
 	struct srule rule;
 	int end_marker = -1;
@@ -1481,7 +1481,7 @@ yyreduce:
     break;
 
   case 17:
-#line 221 "sgramm.y"
+#line 232 "sgramm.y"
     {
 	 char *repr = (char *) (yyvsp[(2) - (2)].ref);
 
@@ -1490,7 +1490,7 @@ yyreduce:
     break;
 
   case 18:
-#line 227 "sgramm.y"
+#line 238 "sgramm.y"
     {
 	  struct sterm term;
 	  
@@ -1737,7 +1737,7 @@ yyreturn:
 }
 
 
-#line 302 "sgramm.y"
+#line 313 "sgramm.y"
 
 
 /* The following is current input character of the grammar
@@ -1811,11 +1811,13 @@ yylex (void)
 	  return c;
 	case '\'':
 	  OS_TOP_ADD_BYTE (stoks, '\'');
+	  /* ptfs (BEGIN): support for special symbols */
 	  if(*curr_ch == '\\')
 	    {
 	      curr_ch++;
 	      OS_TOP_ADD_BYTE (stoks, '\\');
 	    }
+	  /* ptfs (END) */
 	  yylval.num = *curr_ch++;
 	  OS_TOP_ADD_BYTE (stoks, yylval.num);
 	  if (*curr_ch++ != '\'')

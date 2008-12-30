@@ -19,17 +19,17 @@
 /* 
  Date: 2008-11-14.
 
- This file is created using three sources by Stanislav Bobykin.
+ This file was created using three sources by Stanislav Bobykin.
  
- - Parser related code is derived from "AMMUNITION/earlyey.c" of 
-   cocom distribution version 0.996. 
-   Web site of cocom project: http://cocom.sourceforge.net
+ - Parser related code was derived from "AMMUNITION/earlyey.c" of 
+   the cocom distribution version 0.996. 
+   The web site of the cocom project: http://cocom.sourceforge.net
  
- - FUSE related code is derived from 
+ - FUSE related code was derived from 
    http://fuse.sourceforge.net/helloworld.html
    http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
  
- - File reading (mmap) code is drived from 
+ - File reading (mmap) code was drived from 
    http://beej.us/guide/bgipc/output/html/multipage/mmap.html
 */
 
@@ -108,7 +108,7 @@ Usage: %s -g GRAMMARFILE -i INPUTFILE  mountpoint\n\
 
 void print_version()
 {
-	printf("ptfs version 0.0.2.0\n");
+	printf("ptfs version 0.0.2.1\n");
 	exit(0);
 }
 
@@ -184,6 +184,11 @@ int get_node(const char* path, struct pt_node** node)
 
 	tok = strtok(path, "/");
 	while(tok) {
+		if(strcmp(tok, "text") == 0) {
+			status = isText;
+			goto out;
+		}
+
 		cur_childs_num = cur_node->childs_num;
 		snprintf(symb_pos, 3, "%s", tok);
 
@@ -195,10 +200,7 @@ int get_node(const char* path, struct pt_node** node)
 		}
 
 		if(i == cur_childs_num) {
-			if(strcmp(tok, "text") == 0)
-				status = isText;
-			else
-				status = unknown;
+			status = unknown;
 			goto out;
 		}
 		tok = strtok(NULL, "/");

@@ -38,12 +38,12 @@
  PTFS note.
  Date: 2008-11-14
  
- This file is slightly modified for ptfs needs by Stanislav Bobykin.
- Parse tree with grammar symbols is constructed from scratch.
+ This file was slightly modified for ptfs needs by Stanislav Bobykin.
+ The parse tree with grammar symbols was constructed from scratch.
  To find modifications use 'ptfs' keyword.
 
- Original file (AMMUNITION/earley.c) is from cocom distribution version 0.996.
- Web site of cocom project: http://cocom.sourceforge.net
+ The original file (AMMUNITION/earley.c) is from cocom distribution version 0.996.
+ The web site of cocom project: http://cocom.sourceforge.net
 */
 
 #ifdef HAVE_CONFIG_H
