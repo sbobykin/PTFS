@@ -1,6 +1,6 @@
 PTFS - is a file system allowing to navigate through parse tree. 
-Essential parameters for mounting are a file with some text and a grammar
-(describing the structure of input text).
+Essential parameters for mounting are a file with some text and 
+a parsing expressions grammar (describing the structure of input text).
 
 The goal of the project is to create hacker friendly environment for writing
 source code mining and transformation utilities.
@@ -8,21 +8,30 @@ source code mining and transformation utilities.
 Note: currently, PTFS is at the early stage of development so
       it is very unstable and not feature complete.
 
+BUILD
+=====
+Install ocaml 3.10 or later.
+On debian you can simply run: 
+	$ apt-get install ocaml-nox
+
+Set correct value to the variable 'OCAMLLIB' in the file 'src/Makefile'.
+To build ptfs, run:
+	$ make
+
+Note: current PTFS build system uses 'make' only.
+      It doesn't have a good configuration subsystem,
+      so you can have unpredictable system depended build faillueres.
 
 INSTALLATION
 ============
-To build, run:
-	$ cmake .
-	$ make
-
 To install, run:
 	$ make install
 
 
 USAGE EXAMPLE
 =============
-To mount new parse tree type:
-	$ ptfs -g examples/grammar -i examples/text  mountpoint
+To mount a new parse tree type:
+	$ ptfs -g examples/arith.peg -i examples/text  mountpoint
 
 To see the subtext related with a node (directory) in a parse tree 
 use something like:
@@ -30,6 +39,13 @@ use something like:
 	
 To unmount use:
 	$ fusermount -u mointpoint
+
+AUROCHS CHANGES.
+================
+PTFS uses Aurohcs (http://aurochs.fr) as 
+a backend parser (code in 'aurochs' subdir).
+Aurochs slightly modified for the PTFS needs.
+To find out modifications use 'ptfs hack' phrase.
 
 
 Project contributor: Stanislav Bobykin.

@@ -19,3 +19,8 @@ let compile ?(start="start") ?(base="") ?(root="root") ?(check=true) u =
   Bytes.with_buffer_sink (Noggie.put_program pg peg)
 
 let _ = compiler := compile
+
+(* ptfs hack (begin) *)
+let compile1 v = compile v
+let _ = Callback.register "compile" compile1
+(* ptfs hack (end) *)

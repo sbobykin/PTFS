@@ -3,8 +3,7 @@
 
     PTFS is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    the Free Software Foundation; version 3 of the License.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,13 +16,22 @@
 */
 
 /* 
+ Date: 2009-04-09.
+
+ Parser related code from Cocom project was removed.
+ New parser related code was derived from "cnog/check.c" of
+ the Aurochs distribution version 1.0.93.
+ The web site of the Aurochs project: http://aurochs.fr
+*/
+
+/* 
  Date: 2008-11-14.
 
  This file was created using three sources by Stanislav Bobykin.
  
  - Parser related code was derived from "AMMUNITION/earlyey.c" of 
-   the cocom distribution version 0.996. 
-   The web site of the cocom project: http://cocom.sourceforge.net
+   the Cocom distribution version 0.996. 
+   The web site of the Cocom project: http://cocom.sourceforge.net
  
  - FUSE related code was derived from 
    http://fuse.sourceforge.net/helloworld.html
@@ -33,10 +41,6 @@
    http://beej.us/guide/bgipc/output/html/multipage/mmap.html
 */
 
-#include "earley.h"
-#include "objstack.h"
-#include "pt.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -45,12 +49,26 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <stddef.h>
+#include <string.h>
 
 #define FUSE_USE_VERSION 25
 #include <errno.h>
 #include <fuse.h>
 
+#include <parse_tree.h>
+#include <cnog.h>
+#include <peg_lib.h>
+#include <pack.h>
+#include <alloc.h>
+#include <staloc.h>
+
+unsigned char* compile(char*, int*);
+
 const char* program_name = "ptfs";
+
+static tree tr;
+static int in_size;
 
 static struct options {
 	char* grammar;
@@ -73,25 +91,13 @@ static struct fuse_opt ptfs_opts[] = {
 	FUSE_OPT_END
 };
 
-static const char *description;
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #define isDir 1
 #define isText 2
 #define unknown 0
 
-static int ntok;
-static os_t mem_os;
-
 static char* input;
-static int input_len;
+static char* grammar;
 
 void print_usage(FILE *F, int exit_code)
 {
@@ -112,103 +118,60 @@ void print_version()
 	exit(0);
 }
 
-static void map_nodes_to_subtext () 
-{
-	int next;
-	int end;
-	struct pt_node* cur_node;
-	struct pt_node* cur_tmp_node;
-	pt_root_node->b = 0;
-	pt_root_node->e = 0;
-	cur_node = pt_root_node;
 
-	do {
-		if(cur_node->type) {
-			//cur_node->b = cur_node->parent->b;
-			if(cur_node->type == 1)
-				end = cur_node->b + 1;
-			else {
-				//cur_node->type = 1;
-				end = cur_node->b;
-			}
-			cur_node->e = end;
-			//printf("TERM: %s b: %d\n", cur_node->repr, cur_node->b);
-			while( cur_node->parent->e == cur_node->parent->childs_num) {
-
-				cur_node = cur_node->parent;
-				cur_node->e = end;
-				//printf("NTERM_UP, END_POS: %s, %d\n", cur_node->repr, cur_node->e);
-				if(cur_node->parent == NULL)
-					break;
-
-			}
-
-			if(cur_node->parent != NULL) {
-				next = cur_node->parent->e;
-				cur_node->parent->e++;
-				cur_node = cur_node->parent->childs[next];
-				//printf("hi repr: %s\n", cur_node->repr);
-				cur_node->b = end;
-			}
-			//printf("end: %d\n", end);
-		}
-		else {
-			//printf("NTERM: %s, %d\n", cur_node->repr, cur_node->e);
-			if(cur_node->childs_num == 0) {
-				//printf("ch_num: %d\n", cur_node->childs_num);
-				cur_node->childs = malloc( sizeof(struct pt_node*) );
-				cur_node->childs[0] = malloc( sizeof(struct pt_node) );
-				cur_node->childs[0]->parent = cur_node; 
-				cur_node->childs[0]->type = 2;
-				cur_node->childs[0]->childs_num = 0;
-				cur_node->childs[0]->repr = malloc( 2*sizeof(char) );
-				snprintf(cur_node->childs[0]->repr, 2, "e");
-				cur_node->childs_num = 1;
-			}
-			cur_node = cur_node->childs[cur_node->e];
-			cur_node->parent->e++;
-			//printf("hii\n");
-			cur_node->b = cur_node->parent->b;
-		}
-	} while (cur_node->parent != NULL);
-}
-
-int get_node(const char* path, struct pt_node** node)
+int get_node(const char* path, tree* ret_tr)
 {
 	int i;
-	int cur_childs_num;
 	int status;
+	int nd_choosen = 1;
 	char symb_pos[3];
 	char* tok;
-	struct pt_node* cur_node = pt_root_node;
-
+	tree cur_tr = tr;
+	node cur_nd;
+	
+	*ret_tr = tr;
 	tok = strtok(path, "/");
 	while(tok) {
+
+		nd_choosen = 0;
+
 		if(strcmp(tok, "text") == 0) {
 			status = isText;
 			goto out;
 		}
 
-		cur_childs_num = cur_node->childs_num;
 		snprintf(symb_pos, 3, "%s", tok);
+		
+		cur_tr = cur_tr->t_element.t_node.n_children;
+		if(!cur_tr) {
+			status = isDir;
+			goto out;
+		}
 
-		for(i = atoi(symb_pos); i < cur_childs_num; i++) {
-			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
-				cur_node = cur_node->childs[i];
+		for(i = 0;
+		    cur_tr; 
+		    cur_tr = cur_tr->t_sibling, i++) {
+			cur_nd = &(cur_tr->t_element.t_node);
+			if(strcmp(tok+3, cur_nd->n_name) == 0 &&
+			    i == atoi(symb_pos) ) {
+				*ret_tr = cur_tr;
+				nd_choosen = 1;
 				break;
 			}
 		}
 
-		if(i == cur_childs_num) {
+
+		if(!nd_choosen) {
 			status = unknown;
 			goto out;
 		}
+
+		
 		tok = strtok(NULL, "/");
 	}
 	status = isDir;
 
 out:
-	*node = cur_node;
 	return status;
 }
 
@@ -216,17 +179,23 @@ static int ptfs_getattr(const char *path, struct stat *stbuf)
 {
 	int retval;
 	int status;
-	struct pt_node* cur_node;
+	substring* text;
+	tree cur_tr;
 	retval = 0;
 	
 	memset(stbuf, 0, sizeof(struct stat));
 
-	status = get_node(path, &cur_node);
+	status = get_node(path, &cur_tr);
 	switch(status) {
 	case isText:
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
-		stbuf->st_size = cur_node->e - cur_node->b + 1;
+		if(cur_tr->t_element.t_node.n_attributes) {
+			text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
+			stbuf->st_size = text->s_end - text->s_begin + 1;
+		}
+		else
+			stbuf->st_size = in_size + 1;
 		break;
 	case isDir:
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -246,14 +215,16 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	(void) fi;
 
 	int i;
-	struct pt_node* cur_node;
+	tree cur_tr;
+	node cur_nd;
 	char str[2048];
 	int status;
 	int retval;
 
 	retval = 0;
 
-	status = get_node(path, &cur_node);
+	status = get_node(path, &cur_tr);
+
 	if(status != isDir) {
 		retval = -ENOENT;
 		goto out;
@@ -262,16 +233,24 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
 	filler(buf, "text", NULL, 0);
-	for(i = 0; i < cur_node->childs_num; i++) {
-		if(cur_node->childs[i]->type)
-			snprintf(str+i, 2048, "/%.2d_T_%s", i, 
-					cur_node->childs[i]->repr);
-		else
-			snprintf(str+i, 2048, "/%.2d_N_%s", i, 
-					cur_node->childs[i]->repr);
+
+	if(!cur_tr)
+		goto out;
+	
+	cur_nd = &(cur_tr->t_element.t_node);
+
+	
+
+	for(cur_tr = cur_nd->n_children, i = 0; 
+	    cur_tr; 
+	    cur_tr = cur_tr->t_sibling, i++) {
+		cur_nd = &(cur_tr->t_element.t_node);
+		snprintf(str+i, 2048, "/%.2d_%s", i, 
+			 cur_nd->n_name);
 
 		filler(buf, str+i+1, NULL, 0);
 	}
+		
 
 out:
 	return retval;
@@ -284,8 +263,12 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 	(void) fi;
 
 	int i;
+	int s_begin;
+	tree cur_tr;
+	int status = get_node(path, &cur_tr);
+	substring* text;
 
-	char* tok;
+	/*char* tok;
 	struct pt_node* cur_node = pt_root_node;
 
 	tok = strtok(path, "/");
@@ -297,15 +280,23 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 			}
 		}
 		tok = strtok(NULL, "/");
+	}*/
+
+	if(cur_tr->t_element.t_node.n_attributes) {
+		text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
+		len = text->s_end - text->s_begin;
+		s_begin = text->s_begin;
+	}
+	else {
+		len = in_size;
+		s_begin = 0;
 	}
 
-	len = cur_node->e - cur_node->b;
-	memcpy(buf, input + cur_node->b, len);
+	memcpy(buf, input + s_begin, len);
 	buf[len] = '\n';
 
 	return len + 1;
 }
-
 
 static struct fuse_operations hello_oper = {
 	.getattr = ptfs_getattr,
@@ -314,7 +305,7 @@ static struct fuse_operations hello_oper = {
 	.read	= ptfs_read,
 };
 
-static char* map_file_to_str (char* pathname)
+static char* map_file_to_str (char* pathname, int* size)
 {
 	int fd, offset;
 	char *data;
@@ -335,51 +326,15 @@ static char* map_file_to_str (char* pathname)
 		exit(1);
 	}
 
+	if(size)
+		*size = sbuf.st_size;
+
 	return data;
 }
 
-static int ptfs_read_token (void **attr)
-{
-	*attr = NULL;
-	char tok;
-
-	if (input[ntok+1] != '\0')
-		tok = input[ntok];
-	else
-		tok = -1;
-	ntok++;
-	return tok;
-}
-
-static void
-test_syntax_error (int err_tok_num, void *err_tok_attr,
-		   int start_ignored_tok_num, void *start_ignored_tok_attr,
-		   int start_recovered_tok_num, void *start_recovered_tok_attr)
-{
-  if (start_ignored_tok_num < 0)
-    fprintf (stderr, "Syntax error on token %d\n", err_tok_num);
-  else
-    fprintf
-      (stderr,
-       "Syntax error on token %d:ignore %d tokens starting with token = %d\n",
-       err_tok_num, start_recovered_tok_num - start_ignored_tok_num,
-       start_ignored_tok_num);
-}
-
-static void *
-test_parse_alloc (int size)
-{
-  void *result;
-
-  OS_TOP_EXPAND (mem_os, size);
-  result = OS_TOP_BEGIN (mem_os);
-  OS_TOP_FINISH (mem_os);
-  return result;
-}
-
-
 int main(int argc, char** argv)
 {
+	caml_startup(argv);
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	memset(&options, 0, sizeof(struct options));
 	if (fuse_opt_parse(&args, &options, ptfs_opts, NULL) == -1)
@@ -393,56 +348,89 @@ int main(int argc, char** argv)
 
 	if(options.grammar && options.input) {
 		/* read grammar */
-		description = map_file_to_str(options.grammar);
+		grammar = map_file_to_str(options.grammar, NULL);
 		/* read input */
-		input = map_file_to_str(options.input);
-		ntok = 0;
+		input = map_file_to_str(options.input, &in_size);
 	}
 	else
 		print_usage(stderr, -1);
 
 
-	/* prepare to parsing */
-	pt_node = malloc(sizeof(struct pt_node));
-	pt_node->parent = NULL;
-	pt_root_node = pt_node;
-	OS_CREATE(pt_pos, 0);
+	/* Reused code from aurochs/cnog/check.c (begin)*/
+	unsigned char *peg_data;
+	char *peg_fn;
+	size_t peg_data_size;
+	nog_program_t *pg;
+	packer_t pk;
+	staloc_t *st;
+	int rc;
 
-	struct grammar *g;
-	struct earley_tree_node *root;
-	int ambiguous_p;
-	
-	OS_CREATE (mem_os, 0);
+	rc = 0;
 
-	if ((g = earley_create_grammar ()) == NULL) {
-		fprintf (stderr, "earley_create_grammar: No memory\n");
-		OS_DELETE (mem_os);
-		exit (1);
-	}
-	
-	earley_set_one_parse_flag (g, FALSE);	
-	earley_set_debug_level (g, 0);
 
-	if (earley_parse_grammar (g, TRUE, description) != 0) {
-		fprintf (stderr, "%s\n", earley_error_message (g));
-		OS_DELETE (mem_os);
-		exit (1);
+	peg_data = compile(grammar, &peg_data_size);
+	if(!peg_data) {
+		//printf("Can't load peg data.\n");
+		exit(EXIT_FAILURE);
 	}
 
+	/* Create a stack allocator */
 
-	if (earley_parse (g, ptfs_read_token, test_syntax_error, 
-				test_parse_alloc, NULL, &root, &ambiguous_p)) {
-		fprintf (stderr, "earley_parse: %s\n", 
-				earley_error_message (g));
-		exit(-1);
+	st = staloc_create(&alloc_stdlib);
+	if(!st) {
+		//printf("Can't create stack allocator.\n");
+		exit(EXIT_FAILURE);
 	}
-	
 
-	map_nodes_to_subtext ();
+	if(pack_init_from_string(&pk, peg_data, peg_data_size)) {
+		//printf("peg_data[0] = %d\n", peg_data[0]);
+		pg = cnog_unpack_program(&st->s_alloc, &pk);
+		//printf("Unpacked to %p\n", pg);
+		if(pg) {
+			peg_context_t *cx;
+			size_t m = in_size;
+			int i;
+			int error_pos;
+			char *fn;
+			unsigned char *buf;
+			int rc;
 
-	fuse_main(args.argc, args.argv, &hello_oper);
-	
+			rc = 0;
+
+			//fn = argv[i];
+			peg_builder_t pb;
+			staloc_t *s2;
+
+			s2 = staloc_create(&alloc_stdlib);
+
+			buf = input;
+			ptree_init(&pb, &s2->s_alloc);
+			cx = peg_create_context(&alloc_stdlib, pg, &pb, &s2->s_alloc, buf, m);
+			//printf("Created context %p\n", cx);
+			if(cx) {
+
+				if(cnog_execute(cx, pg, &tr)) {
+					//printf("Parsed as %p.\n", tr);
+					//ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
+					fuse_main(args.argc, args.argv, &hello_oper);
+
+				} else {
+					printf("Doesn't parse.\n");
+					error_pos = cnog_error_position(cx, pg);
+					printf("Error at %d\n", error_pos);
+				}
+
+				peg_delete_context(cx);
+			}
+			staloc_dispose(s2);
+			//free(buf);
+
+			/* cnog_free_program(&st->s_alloc, pg); */
+			staloc_dispose(st);
+		}
+	}
+
 	fuse_opt_free_args(&args);
-	
-	return 0;
+	return rc;
+	/* Reused code from aurochs/cnog/check.c (end) */
 }

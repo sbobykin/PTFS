@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <alloc.h>
 
+/* ptfs hack (begin) */
+int compile_stage;
+/* ptfs hack (end) */
+
 #define CNOG_DEBUG 0
 
 static INLINE memo_block_t *memo_alloc_block(alloc_t *alloc, int cells_per_block)
@@ -436,6 +440,12 @@ static nog_instruction_t *run(cnog_closure_t *c, construction current, nog_instr
           name = c->pg->np_constructors[id].ns_chars;
           new_cons = c->bd->pb_start_construction(c->bi, id, name, c->head - c->bof);
           ip_next = run(c, new_cons, ip_next, &new_tree);
+
+	  /* ptfs hack (begin) */
+	  if(!compile_stage)
+	  	c->bd->pb_add_attribute(c->bi, new_tree, id, "text", stack_top(c), c->head - c->bof); 
+	  /* ptfs hack (end) */
+
           if(!ip_next) {
             return 0;
           }
