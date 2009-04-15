@@ -262,10 +262,10 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 	size_t len;
 	(void) fi;
 
-	int i;
+	//int i;
 	int s_begin;
 	tree cur_tr;
-	int status = get_node(path, &cur_tr);
+	//int status = get_node(path, &cur_tr);
 	substring* text;
 
 	/*char* tok;
