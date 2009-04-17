@@ -411,7 +411,7 @@ int main(int argc, char** argv)
 
 				if(cnog_execute(cx, pg, &tr)) {
 					//printf("Parsed as %p.\n", tr);
-					ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
+					//ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
 					fuse_main(args.argc, args.argv, &hello_oper);
 
 				} else {

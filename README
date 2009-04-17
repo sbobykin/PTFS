@@ -16,6 +16,7 @@ On debian you can simply run:
 
 Set correct value to the variable 'OCAMLLIB' in the file 'src/Makefile'.
 To build ptfs, run:
+	$ ./configure (or ./autogen.sh)
 	$ make
 
 Note: current PTFS build system uses 'make' only.

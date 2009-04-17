@@ -439,11 +439,16 @@ static nog_instruction_t *run(cnog_closure_t *c, construction current, nog_instr
           id = arg0();
           name = c->pg->np_constructors[id].ns_chars;
           new_cons = c->bd->pb_start_construction(c->bi, id, name, c->head - c->bof);
+
+	  int s_begin = c->head - c->bof; /* ptfs hack */
+
           ip_next = run(c, new_cons, ip_next, &new_tree);
+	  
+	  int s_end = c->head - c->bof; /* ptfs hack */
 
 	  /* ptfs hack (begin) */
 	  if(!compile_stage)
-	  	c->bd->pb_add_attribute(c->bi, new_tree, id, "text", stack_top(c), c->head - c->bof); 
+	    c->bd->pb_add_attribute(c->bi, new_tree, id, "text", s_begin, s_end); 
 	  /* ptfs hack (end) */
 
           if(!ip_next) {

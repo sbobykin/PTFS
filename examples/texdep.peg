@@ -1,0 +1,16 @@
+start ::= doc EOF;
+
+sp ::= [ \n\t\r]*;
+
+l_brace ::= sp '{' sp;
+r_brace ::= sp '}' sp;
+
+doc ::= 
+	input doc
+	| not_input doc
+	| sigma
+;
+
+input ::= "\\input" l_brace <input> fname </input> r_brace;
+not_input ::= ~"\\input" sigma ;
+fname ::= (~'}' sigma)+;
