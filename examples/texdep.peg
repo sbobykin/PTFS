@@ -6,11 +6,9 @@ l_brace ::= sp '{' sp;
 r_brace ::= sp '}' sp;
 
 doc ::= 
-	input doc
-	| not_input doc
-	| sigma
+	(input | sigma) doc
+	| epsilon
 ;
 
-input ::= "\\input" l_brace <input> fname </input> r_brace;
-not_input ::= ~"\\input" sigma ;
-fname ::= (~'}' sigma)+;
+input ::= "\\input" l_brace fname r_brace;
+fname ::= <input> (~'}' sigma)+ </input>;

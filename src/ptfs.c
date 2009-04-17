@@ -259,6 +259,7 @@ out:
 static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
                       struct fuse_file_info *fi)
 {
+	printf("hi all\n");
 	size_t len;
 	(void) fi;
 
@@ -292,10 +293,20 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 		s_begin = 0;
 	}
 
-	memcpy(buf, input + s_begin, len);
-	buf[len] = '\n';
+	if (offset < len) {
+		if (offset + size > len)
+			size = len - offset;
+		memcpy(buf, input + s_begin + offset, size);
+	} 
+	else {
+		buf[len] = '\n';
+		size = 0;
+	}
 
-	return len + 1;
+	//memcpy(buf, input + s_begin + offset, len);
+	//buf[len] = '\n';
+
+	return size;
 }
 
 static struct fuse_operations hello_oper = {
