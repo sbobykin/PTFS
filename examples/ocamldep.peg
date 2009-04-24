@@ -1,0 +1,31 @@
+start ::= smb+ glob_scope EOF;
+
+sp_smb ::= (' '|'\n'|'\t');
+sp ::= (' '|'\n'|'\t')*;
+sp_ne ::= (' '|'\n'|'\t')+;
+comment ::= "(*" (~"*)" sigma)* "*)";
+
+smb ::= 
+	comment	
+	| ":=" 
+	| ~keyword sigma 
+;
+
+let ::= "let" ;
+in ::= sp_ne "in" sp_ne ;
+
+keyword ::= let | in | ";" | "=" | "begin";
+
+glob_scope ::= (comment | fdef)* ;
+loc_scope ::= 
+	fdef
+	| smb* "begin" smb* fdef 
+	| (("begin" | smb)* ";")+ sp fdef
+	| ("begin" | (~comment smb))*
+;
+
+
+fdef ::= <fdef> let fdecl "=" (sp fdef | smb+) (in loc_scope)? </fdef>;
+
+fdecl ::= sp <fdecl> (~sp_smb sigma)+ </fdecl> (smb ("?" smb+ "=")?)* ;
+
