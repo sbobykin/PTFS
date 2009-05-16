@@ -1,7 +1,7 @@
-start ::= smb+ glob_scope EOF;
+start ::= (sp not_let_word sp)* glob_scope EOF;
 
 sp_smb ::= (' '|'\n'|'\t');
-sp ::= (' '|'\n'|'\t')*;
+sp ::= (comment|' '|'\n'|'\t')*;
 sp_ne ::= (' '|'\n'|'\t')+;
 comment ::= "(*" (~"*)" sigma)* "*)";
 
@@ -11,21 +11,33 @@ smb ::=
 	| ~keyword sigma 
 ;
 
+word ::= (~(sp_smb|";") sigma)+;
+not_let_word ::= ~"let" word;
+
 let ::= "let" ;
-in ::= sp_ne "in" sp_ne ;
+in ::= "in";
+then ::= "then";
+begin ::= "begin";
+end ::= "end";
 
-keyword ::= let | in | ";" | "=" | "begin";
+not_let ::= sigma;
 
-glob_scope ::= (comment | fdef)* ;
+keyword ::= let | in | ";" | "=" | "begin" | "then";
+not_let_not_openkeyword ::= ~(let|openkeyword) word;
+
+openkeyword ::= in|then|begin|";";
+
+glob_scope ::= (fdef (sp not_let_word* sp)*)*;
 loc_scope ::= 
-	fdef
-	| smb* "begin" smb* fdef 
-	| (("begin" | smb)* ";")+ sp fdef
-	| ("begin" | (~comment smb))*
+	(
+		(sp openkeyword)+
+		((sp fdef)|(sp <tst> not_let_not_openkeyword </tst>)+)
+	)+
 ;
 
+fdef ::= <fdef> "let" sp_ne fdecl sp "=" 
+	((sp fdef) | (sp <tst> not_let_not_openkeyword </tst>)+) sp loc_scope? </fdef>
+;
 
-fdef ::= <fdef> let fdecl "=" (sp fdef | smb+) (in loc_scope)? </fdef>;
-
-fdecl ::= sp <fdecl> (~sp_smb sigma)+ </fdecl> (smb ("?" smb+ "=")?)* ;
+fdecl ::= <fdecl> word </fdecl> (sp ( ~"=" word | ("?" sp word sp "=" sp word)?) )* ;
 
