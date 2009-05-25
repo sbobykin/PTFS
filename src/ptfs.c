@@ -124,7 +124,7 @@ int get_node(const char* path, tree* ret_tr)
 	int i;
 	int status;
 	int nd_choosen = 1;
-	char symb_pos[3];
+	char symb_pos[4];
 	char* tok;
 	tree cur_tr = tr;
 	node cur_nd;
@@ -140,7 +140,7 @@ int get_node(const char* path, tree* ret_tr)
 			goto out;
 		}
 
-		snprintf(symb_pos, 3, "%s", tok);
+		snprintf(symb_pos, 4, "%s", tok);
 		
 		cur_tr = cur_tr->t_element.t_node.n_children;
 		if(!cur_tr) {
@@ -152,7 +152,7 @@ int get_node(const char* path, tree* ret_tr)
 		    cur_tr; 
 		    cur_tr = cur_tr->t_sibling, i++) {
 			cur_nd = &(cur_tr->t_element.t_node);
-			if(strcmp(tok+3, cur_nd->n_name) == 0 &&
+			if(strcmp(tok+4, cur_nd->n_name) == 0 &&
 			    i == atoi(symb_pos) ) {
 				*ret_tr = cur_tr;
 				nd_choosen = 1;
@@ -245,10 +245,10 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	    cur_tr; 
 	    cur_tr = cur_tr->t_sibling, i++) {
 		cur_nd = &(cur_tr->t_element.t_node);
-		snprintf(str+i, 2048, "/%.2d_%s", i, 
+		snprintf(str, 2048, "%.3d_%s", i, 
 			 cur_nd->n_name);
 
-		filler(buf, str+i+1, NULL, 0);
+		filler(buf, str, NULL, 0);
 	}
 		
 
