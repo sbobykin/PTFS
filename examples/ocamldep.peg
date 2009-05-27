@@ -5,7 +5,11 @@ sp ::= (comment|' '|'\n'|'\t')*;
 comment ::= "(*" (~"*)" sigma)* "*)";
 
 word ::=(~sp_smb sigma)+;
-word_no_semicol ::= (~(sp_smb|";") sigma)+;
+word_no_semicol ::= (~(sp_smb|";"|spec_smb) sigma)+;
+word_no_semicol2 ::= (~(sp_smb|";") sigma)+;
+spec_smb ::= "|" | "(" | ")" | "=" | [0-9] | "[" | "]" | (~"->" "-") | "::" |"." ;
+
+
 not_let_word ::= ~"let" word;
 
 let ::= "let" ;
@@ -15,24 +19,58 @@ begin ::= "begin";
 end ::= "end";
 
 openkeyword ::= "in"|"then"|"begin"|"try"|"->"|(~";;" ";");
-not_let_not_openkeyword ::= ~((let|openkeyword) sp_smb) word_no_semicol;
+keyword ::= "if" ;
+not_let_not_keyword ::= ~(let|openkeyword|keyword) word_no_semicol;
+not_let_not_openkeyword ::= ~(let|openkeyword) word_no_semicol2;
+
+id ::= [a-zA-Z_][0-9a-zA-Z_]*
+;
+
+symbol_package_case ::= smb | spec_smb | keyword
+;
+
+(*some ::= not_let_not_openkeyword;*)
+
+(*some ::= symbol_package_case;*)
+
+some ::= package_case;
+
+smb ::=
+	<package> 
+		<pname> not_let_not_keyword </pname> 
+		"."
+	 	<psymbol> not_let_not_keyword </psymbol>
+	</package>
+	
+	| <symbol> not_let_not_keyword </symbol>
+;
+
+
+package_case ::=
+	<package> 
+		<pname> id </pname> 
+		"."
+	 	<psymbol> id </psymbol>
+	</package>
+	| not_let_not_openkeyword
+;
 
 
 glob_scope ::= (glob_fdef (sp not_let_word* sp)*)*;
 loc_scope ::= 
 	(
 		(sp openkeyword)+
-		((sp fdef)|(sp <tst> not_let_not_openkeyword </tst>)+)
+		((sp fdef)|(sp some)+)
 	)+
 ;
 
 glob_fdef ::= <fdef> "let" sp glob_fdecl sp "=" 
-	((sp fdef) | (sp <tst> not_let_not_openkeyword </tst>)+) sp loc_scope? </fdef>
+	((sp fdef) | (sp some)+) sp loc_scope? </fdef>
 ;
 glob_fdecl ::= <fdecl> word </fdecl> (sp ( ~"=" word | ("?" sp word sp "=" sp word)?) )* ;
 
 fdef ::= "let" sp fdecl sp "=" 
-	((sp fdef) | (sp <tst> not_let_not_openkeyword </tst>)+) sp loc_scope?
+	((sp fdef) | (sp some)+) sp loc_scope?
 ;
 
 
