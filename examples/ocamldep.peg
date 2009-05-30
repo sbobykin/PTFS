@@ -1,7 +1,8 @@
-start ::= (sp not_let_word sp)* glob_scope EOF;
+start ::= glob_scope EOF;
 
 sp_smb ::= (' '|'\n'|'\t');
 sp ::= (comment|' '|'\n'|'\t')*;
+sp_ne ::= sp_smb+;
 comment ::= "(*" (~"*)" sigma)* "*)";
 
 word ::=(~sp_smb sigma)+;
@@ -10,7 +11,7 @@ word_no_semicol2 ::= (~(sp_smb|";") sigma)+;
 spec_smb ::= "|" | "(" | ")" | "=" | [0-9] | "[" | "]" | (~"->" "-") | "::" |"." ;
 
 
-not_let_word ::= ~"let" word;
+not_let_word ::= ~("let"|"module"|"open") word;
 
 let ::= "let" ;
 in ::= "in";
@@ -56,13 +57,17 @@ package_case ::=
 ;
 
 
-glob_scope ::= (glob_fdef (sp not_let_word* sp)*)*;
+glob_scope ::= ((glob_fdef|module_def|open_def)? (sp not_let_word* sp)*)*;
 loc_scope ::= 
 	(
 		(sp openkeyword)+
 		((sp fdef)|(sp some)+)
 	)+
 ;
+
+module_def ::= <module> "module" sp_ne <mname> id </mname> 
+	       sp "=" sp <pname> id </pname> </module>;
+open_def ::= "open" sp_ne <open> id </open>;
 
 glob_fdef ::= <fdef> "let" sp glob_fdecl sp "=" 
 	((sp fdef) | (sp some)+) sp loc_scope? </fdef>
@@ -72,6 +77,5 @@ glob_fdecl ::= <fdecl> word </fdecl> (sp ( ~"=" word | ("?" sp word sp "=" sp wo
 fdef ::= "let" sp fdecl sp "=" 
 	((sp fdef) | (sp some)+) sp loc_scope?
 ;
-
 
 fdecl ::= word (sp ( ~"=" word | ("?" sp word sp "=" sp word)?) )* ;
