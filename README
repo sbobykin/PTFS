@@ -14,7 +14,6 @@ Install ocaml 3.10 or later.
 On debian you can simply run: 
 	$ apt-get install ocaml-nox
 
-Set correct value to the variable 'OCAMLLIB' in the file 'src/Makefile'.
 To build ptfs, run:
 	$ ./configure (or ./autogen.sh)
 	$ make
