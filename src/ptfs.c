@@ -52,6 +52,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <glib.h>
+
 #define FUSE_USE_VERSION 25
 #include <errno.h>
 #include <fuse.h>
@@ -67,8 +69,16 @@ unsigned char* compile(char*, int*);
 
 const char* program_name = "ptfs";
 
+static GHashTable* files;
+
 static tree tr;
 static int in_size;
+
+static struct pars_obj {
+	char* input;
+	unsigned int in_size;
+	tree tr;
+};
 
 static struct options {
 	char* grammar;
@@ -128,9 +138,23 @@ int get_node(const char* path, tree* ret_tr)
 	char* tok;
 	tree cur_tr = tr;
 	node cur_nd;
+	struct pars_obj* pars_obj;
 	
 	*ret_tr = tr;
 	tok = strtok(path, "/");
+	if(tok!=NULL) {
+		pars_obj = g_hash_table_lookup(files, tok);
+		if(pars_obj) {
+			cur_tr = pars_obj->tr;
+			*ret_tr = cur_tr;
+		}
+		else {
+			status = unknown;
+			goto out;
+		}
+	}
+	tok = strtok(NULL, "/");
+	//printf("tok is %s\n", tok);
 	while(tok) {
 
 		nd_choosen = 0;
@@ -223,6 +247,15 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 	retval = 0;
 
+	if(strcmp(path, "/")==0) {
+		filler(buf, ".", NULL, 0);
+		filler(buf, "..", NULL, 0);
+		GList* flist = g_hash_table_get_keys(files);
+		for(; flist; flist=flist->next)
+			filler(buf, basename(flist->data), NULL, 0);
+		goto out;
+	}
+
 	status = get_node(path, &cur_tr);
 
 	if(status != isDir) {
@@ -259,7 +292,6 @@ out:
 static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
                       struct fuse_file_info *fi)
 {
-	printf("hi all\n");
 	size_t len;
 	(void) fi;
 
@@ -343,30 +375,13 @@ static char* map_file_to_str (char* pathname, int* size)
 	return data;
 }
 
-int main(int argc, char** argv)
+int parse_file(char* file_name)
 {
-	caml_startup(argv);
-	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
-	memset(&options, 0, sizeof(struct options));
-	if (fuse_opt_parse(&args, &options, ptfs_opts, NULL) == -1)
-		print_usage(stderr, -1);
+	input = map_file_to_str(file_name, &in_size);
+	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
+	pars_obj->input = input;
+	pars_obj->in_size = in_size;
 	
-	if(options.version)
-		print_version();
-	
-	if(options.help)
-		print_usage(stdout, 0);
-
-	if(options.grammar && options.input) {
-		/* read grammar */
-		grammar = map_file_to_str(options.grammar, NULL);
-		/* read input */
-		input = map_file_to_str(options.input, &in_size);
-	}
-	else
-		print_usage(stderr, -1);
-
-
 	/* Reused code from aurochs/cnog/check.c (begin)*/
 	unsigned char *peg_data;
 	char *peg_fn;
@@ -377,7 +392,6 @@ int main(int argc, char** argv)
 	int rc;
 
 	rc = 0;
-
 
 	peg_data = compile(grammar, &peg_data_size);
 	if(!peg_data) {
@@ -423,7 +437,9 @@ int main(int argc, char** argv)
 				if(cnog_execute(cx, pg, &tr)) {
 					//printf("Parsed as %p.\n", tr);
 					//ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
-					fuse_main(args.argc, args.argv, &hello_oper);
+					pars_obj->tr = tr;
+					g_hash_table_insert(files, 
+							basename(file_name), pars_obj);
 
 				} else {
 					printf("Doesn't parse.\n");
@@ -431,17 +447,51 @@ int main(int argc, char** argv)
 					printf("Error at %d\n", error_pos);
 				}
 
-				peg_delete_context(cx);
+				//?peg_delete_context(cx);
 			}
-			staloc_dispose(s2);
+			//?staloc_dispose(s2);
 			//free(buf);
 
 			/* cnog_free_program(&st->s_alloc, pg); */
-			staloc_dispose(st);
+			//?staloc_dispose(st);
 		}
 	}
-
-	fuse_opt_free_args(&args);
 	return rc;
 	/* Reused code from aurochs/cnog/check.c (end) */
+}
+
+int cmp(char* s1, char* s2)
+{
+	return !strcmp(s1, s2);
+}
+
+int main(int argc, char** argv)
+{
+	caml_startup(argv);
+
+	files = g_hash_table_new(g_str_hash, cmp);
+
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	memset(&options, 0, sizeof(struct options));
+	if (fuse_opt_parse(&args, &options, ptfs_opts, NULL) == -1)
+		print_usage(stderr, -1);
+	
+	if(options.version)
+		print_version();
+	
+	if(options.help)
+		print_usage(stdout, 0);
+
+	if(options.grammar && options.input) {
+		/* read grammar */
+		grammar = map_file_to_str(options.grammar, NULL);
+		/* read input */
+		parse_file(options.input);
+	}
+	else
+		print_usage(stderr, -1);
+
+	fuse_main(args.argc, args.argv, &hello_oper);
+	fuse_opt_free_args(&args);
+	return 0;
 }
