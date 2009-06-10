@@ -41,6 +41,12 @@
    http://beej.us/guide/bgipc/output/html/multipage/mmap.html
 */
 
+/*
+ Date: 2009-06-10.
+
+ Parser related code was moved to 'src/parse.c'
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -52,33 +58,15 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <glib.h>
-
 #define FUSE_USE_VERSION 25
 #include <errno.h>
 #include <fuse.h>
 
-#include <parse_tree.h>
-#include <cnog.h>
-#include <peg_lib.h>
-#include <pack.h>
-#include <alloc.h>
-#include <staloc.h>
+#include "ptfs.h"
 
 unsigned char* compile(char*, int*);
 
 const char* program_name = "ptfs";
-
-static GHashTable* files;
-
-static tree tr;
-static int in_size;
-
-static struct pars_obj {
-	char* input;
-	unsigned int in_size;
-	tree tr;
-};
 
 static struct options {
 	char* grammar;
@@ -105,9 +93,6 @@ static struct fuse_opt ptfs_opts[] = {
 #define isDir 1
 #define isText 2
 #define unknown 0
-
-static char* input;
-static char* grammar;
 
 void print_usage(FILE *F, int exit_code)
 {
@@ -348,7 +333,7 @@ static struct fuse_operations hello_oper = {
 	.read	= ptfs_read,
 };
 
-static char* map_file_to_str (char* pathname, int* size)
+char* map_file_to_str (char* pathname, int* size)
 {
 	int fd, offset;
 	char *data;
@@ -373,91 +358,6 @@ static char* map_file_to_str (char* pathname, int* size)
 		*size = sbuf.st_size;
 
 	return data;
-}
-
-int parse_file(char* file_name)
-{
-	input = map_file_to_str(file_name, &in_size);
-	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
-	pars_obj->input = input;
-	pars_obj->in_size = in_size;
-	
-	/* Reused code from aurochs/cnog/check.c (begin)*/
-	unsigned char *peg_data;
-	char *peg_fn;
-	size_t peg_data_size;
-	nog_program_t *pg;
-	packer_t pk;
-	staloc_t *st;
-	int rc;
-
-	rc = 0;
-
-	peg_data = compile(grammar, &peg_data_size);
-	if(!peg_data) {
-		//printf("Can't load peg data.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Create a stack allocator */
-
-	st = staloc_create(&alloc_stdlib);
-	if(!st) {
-		//printf("Can't create stack allocator.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if(pack_init_from_string(&pk, peg_data, peg_data_size)) {
-		//printf("peg_data[0] = %d\n", peg_data[0]);
-		pg = cnog_unpack_program(&st->s_alloc, &pk);
-		//printf("Unpacked to %p\n", pg);
-		if(pg) {
-			peg_context_t *cx;
-			size_t m = in_size;
-			int i;
-			int error_pos;
-			char *fn;
-			unsigned char *buf;
-			int rc;
-
-			rc = 0;
-
-			//fn = argv[i];
-			peg_builder_t pb;
-			staloc_t *s2;
-
-			s2 = staloc_create(&alloc_stdlib);
-
-			buf = input;
-			ptree_init(&pb, &s2->s_alloc);
-			cx = peg_create_context(&alloc_stdlib, pg, &pb, &s2->s_alloc, buf, m);
-			//printf("Created context %p\n", cx);
-			if(cx) {
-
-				if(cnog_execute(cx, pg, &tr)) {
-					//printf("Parsed as %p.\n", tr);
-					//ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
-					pars_obj->tr = tr;
-					g_hash_table_insert(files, 
-							basename(file_name), pars_obj);
-
-				} else {
-					printf("Doesn't parse.\n");
-					error_pos = cnog_error_position(cx, pg);
-					printf("Error at %d\n", error_pos);
-				}
-
-				//?peg_delete_context(cx);
-			}
-			//?staloc_dispose(s2);
-			//free(buf);
-
-			/* cnog_free_program(&st->s_alloc, pg); */
-			//?staloc_dispose(st);
-		}
-	}
-	return rc;
-	/* Reused code from aurochs/cnog/check.c (end) */
 }
 
 int cmp(char* s1, char* s2)
