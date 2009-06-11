@@ -12,8 +12,4 @@ struct pars_obj {
 
 char* grammar;
 char* map_file_to_str (char* pathname, int* size);
-
-int in_size;
-char* input;
-
 int parse_file(char* file_name);

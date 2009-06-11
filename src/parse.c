@@ -23,7 +23,8 @@
 
 int parse_file(char* file_name)
 {
-	input = map_file_to_str(file_name, &in_size);
+	int in_size;
+	char* input = map_file_to_str(file_name, &in_size);
 	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
 	pars_obj->input = input;
 	pars_obj->in_size = in_size;

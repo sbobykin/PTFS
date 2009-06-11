@@ -114,7 +114,7 @@ void print_version()
 }
 
 
-int get_node(const char* path, tree* ret_tr)
+int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj)
 {
 	int i;
 	int status;
@@ -129,6 +129,7 @@ int get_node(const char* path, tree* ret_tr)
 	tok = strtok(path, "/");
 	if(tok!=NULL) {
 		pars_obj = g_hash_table_lookup(files, tok);
+		*ret_pars_obj = pars_obj;
 		if(pars_obj) {
 			cur_tr = pars_obj->tr;
 			*ret_tr = cur_tr;
@@ -190,11 +191,12 @@ static int ptfs_getattr(const char *path, struct stat *stbuf)
 	int status;
 	substring* text;
 	tree cur_tr;
+	struct pars_obj* pars_obj;
 	retval = 0;
 	
 	memset(stbuf, 0, sizeof(struct stat));
 
-	status = get_node(path, &cur_tr);
+	status = get_node(path, &cur_tr, &pars_obj);
 	switch(status) {
 	case isText:
 		stbuf->st_mode = S_IFREG | 0444;
@@ -204,7 +206,7 @@ static int ptfs_getattr(const char *path, struct stat *stbuf)
 			stbuf->st_size = text->s_end - text->s_begin + 1;
 		}
 		else
-			stbuf->st_size = in_size + 1;
+			stbuf->st_size = pars_obj->in_size + 1;
 		break;
 	case isDir:
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -225,6 +227,7 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 	int i;
 	tree cur_tr;
+	struct pars_obj* pars_obj;
 	node cur_nd;
 	char str[2048];
 	int status;
@@ -241,7 +244,7 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		goto out;
 	}
 
-	status = get_node(path, &cur_tr);
+	status = get_node(path, &cur_tr, &pars_obj);
 
 	if(status != isDir) {
 		retval = -ENOENT;
@@ -256,8 +259,6 @@ static int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		goto out;
 	
 	cur_nd = &(cur_tr->t_element.t_node);
-
-	
 
 	for(cur_tr = cur_nd->n_children, i = 0; 
 	    cur_tr; 
@@ -283,7 +284,8 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 	//int i;
 	int s_begin;
 	tree cur_tr;
-	int status = get_node(path, &cur_tr);
+	struct pars_obj* pars_obj;
+	int status = get_node(path, &cur_tr, &pars_obj);
 	substring* text;
 
 	/*char* tok;
@@ -306,14 +308,14 @@ static int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 		s_begin = text->s_begin;
 	}
 	else {
-		len = in_size;
+		len = pars_obj->in_size;
 		s_begin = 0;
 	}
 
 	if (offset < len) {
 		if (offset + size > len)
 			size = len - offset;
-		memcpy(buf, input + s_begin + offset, size);
+		memcpy(buf, pars_obj->input + s_begin + offset, size);
 	} 
 	else {
 		buf[len] = '\n';

@@ -1,4 +1,3 @@
-
 bin_PROGRAMS = ptfs
 
 OCAMLC_CCOPT=-ccopt -I../aurochs/include/ -ccopt -g
@@ -9,10 +8,10 @@ ptfs: ptfs.o compilewrap.o parse.o aurochs_lib.o
 	    -L ../aurochs/_build/ -L $(OCAMLLIB) \
 	    -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
 
-ptfs.o: ptfs.c
+ptfs.o: ptfs.c ptfs.h
 	$(OCAMLC) $(OCAMLC_CCOPT) $(DEPS_OCAMLC_CCOPT) ptfs.c
 
-parse.o: parse.c
+parse.o: parse.c ptfs.h
 	$(OCAMLC) $(OCAMLC_CCOPT) $(DEPS_OCAMLC_CCOPT) parse.c
 
 compilewrap.o: compilewrap.c
