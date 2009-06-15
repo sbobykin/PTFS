@@ -4,14 +4,7 @@
           See the file 'gpl-3.0.txt' for details.
 */
 
-/*
- Date: 2009-06-10.
-
- This file contains the code for parsing, that was moved from 'src/ptfs.c'.
- The code that uses Aurochs parsing API was reused 
- from 'cnog/check.c' of the Aurochs distribution version 1.0.93.
- The web site of the Aurochs project: http://aurochs.fr
-*/
+/* This file contains reuse notes. See the file 'REUSE' for details. */
 
 #include <stdio.h>
 #include <stdlib.h>

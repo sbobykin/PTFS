@@ -15,37 +15,8 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-/* 
- Date: 2009-04-09.
+/* This file contains reuse notes. See the file 'REUSE' for details. */
 
- Parser related code from Cocom project was removed.
- New parser related code was derived from "cnog/check.c" of
- the Aurochs distribution version 1.0.93.
- The web site of the Aurochs project: http://aurochs.fr
-*/
-
-/* 
- Date: 2008-11-14.
-
- This file was created using three sources by Stanislav Bobykin.
- 
- - Parser related code was derived from "AMMUNITION/earlyey.c" of 
-   the Cocom distribution version 0.996. 
-   The web site of the Cocom project: http://cocom.sourceforge.net
- 
- - FUSE related code was derived from 
-   http://fuse.sourceforge.net/helloworld.html
-   http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
- 
- - File reading (mmap) code was drived from 
-   http://beej.us/guide/bgipc/output/html/multipage/mmap.html
-*/
-
-/*
- Date: 2009-06-10.
-
- Parser related code was moved to 'src/parse.c'
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
