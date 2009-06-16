@@ -4,13 +4,16 @@ OCAMLC_CCOPT=-ccopt -I../aurochs/include/ -ccopt -g
 DEPS_OCAMLC_CCOPT=`for i in $(DEPS_CFLAGS); do echo -n  " -ccopt $$i "; done;`
 
 bin_PROGRAMS = ptfs
-ptfs_SOURCES = ptfs.c ptfs.h parse.c compilewrap.c
+ptfs_SOURCES = ptfs.c ptfs.h parse.c get_node.c compilewrap.c
+ptfs_LDADD=aurochs_lib.o
+LIBS = -L ../aurochs/_build/ -L $(OCAMLLIB) -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
+#ptfs_DEPENDENCIES=$(ptfs_LDADD)
 COMPILE=$(CPP)
 
-ptfs: ptfs.o compilewrap.o parse.o aurochs_lib.o
-	gcc -g -o ptfs ptfs.o compilewrap.o aurochs_lib.o parse.o \
-	    -L ../aurochs/_build/ -L $(OCAMLLIB) \
-	    -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
+#ptfs: ptfs.o compilewrap.o parse.o aurochs_lib.o get_node.o
+#	gcc -g -o ptfs ptfs.o compilewrap.o aurochs_lib.o parse.o get_node.o\
+#	    -L ../aurochs/_build/ -L $(OCAMLLIB) \
+#	    -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
 
 .c.o:
 	$(CPP) -M -MF $(DEPDIR)/$*.Tpo $(DEPS_CFLAGS) -I../aurochs/include/  $<
