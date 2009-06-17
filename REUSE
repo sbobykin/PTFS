@@ -18,6 +18,12 @@ This file was created using three sources by Stanislav Bobykin.
 - FUSE related code was derived from 
   http://fuse.sourceforge.net/helloworld.html
   http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
+  The code form these examples was used as a template
+  for realizing the FUSE subsystem in PTFS.
+  Keywords for the FUSE related code:
+	'struct options'
+	'struct fuse_operations hello_oper'
+  Macros 'HELLOFS_OPT_KEY' was reused and renamed to 'PTFS_OPT_KEY'.
 
 - File reading (mmap) code was derived from 
   http://beej.us/guide/bgipc/output/html/multipage/mmap.html
@@ -26,6 +32,8 @@ This file was created using three sources by Stanislav Bobykin.
 Date: 2009-06-10.
 Parser related code was moved to 'src/parse.c'
 
+Date: 2009-06-17.
+The code related with FUSE operations was moved to 'src/fuse_ops.c'.
 
 
 src/parse.c:
@@ -38,6 +46,16 @@ The code that uses Aurochs parsing API was reused
 from 'cnog/check.c' of the Aurochs distribution version 1.0.93.
 The web site of the Aurochs project: http://aurochs.fr
 
+src/fuse_ops.c:
+===============
+
+Date: 2009-06-17.
+The file contains code for FUSE operations, it was moved from from 'src/ptfs.c'.
+The code initially was created using examples from
+  http://fuse.sourceforge.net/helloworld.html
+  http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
+as a template.
+Struct 'hello_oper' was renamed to 'ptfs_ops'
 
 
 src/Makefile.am:
