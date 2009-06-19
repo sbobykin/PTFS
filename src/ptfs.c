@@ -68,30 +68,23 @@ void print_version()
 }
 
 
-
 char* map_file_to_str (char* pathname, int* size)
 {
-	int fd, offset;
-	char *data;
-	struct stat sbuf;
-
-	if ((fd = open(pathname, O_RDONLY)) == -1) {
-		perror("open");
-		exit(1);
-	}
-
-	if (stat(pathname, &sbuf) == -1) {
-		perror("stat");
-		exit(1);
-	}
-	
-	if ((data = mmap((caddr_t)0, sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0)) == (caddr_t)(-1)) {
-		perror("mmap");
+	GError* error = NULL;
+	GMappedFile* mf = g_mapped_file_new(pathname, FALSE, &error);
+	char* data = g_mapped_file_get_contents(mf);
+	if(!data) {
+		if(error)
+			fprintf(stderr, "%s\n", error->message);
+		else
+			fprintf(stderr, 
+				"map_file_to_str %s: unkown error\n", 
+				pathname);
 		exit(1);
 	}
 
 	if(size)
-		*size = sbuf.st_size;
+		*size = g_mapped_file_get_length(mf); 
 
 	return data;
 }

@@ -1,5 +1,16 @@
 src/ptfs.c:
 ===========
+
+Date: 2006-06-19
+The code in the function 'map_file_to_str' earlier reused from 
+'http://beej.us/guide/bgipc/output/html/multipage/mmapp.html'
+was rewritten from scratch using glib functions 'g_mapped_file.*'. 
+
+Date: 2009-06-17.
+The code related with FUSE operations was moved to 'src/fuse_ops.c'.
+
+Date: 2009-06-10.
+Parser related code was moved to 'src/parse.c'
  
 Date: 2009-04-09.
 Parser related code from Cocom project was removed.
@@ -26,14 +37,10 @@ This file was created using three sources by Stanislav Bobykin.
   Macros 'HELLOFS_OPT_KEY' was reused and renamed to 'PTFS_OPT_KEY'.
 
 - File reading (mmap) code was derived from 
-  http://beej.us/guide/bgipc/output/html/multipage/mmap.html
+  http://beej.us/guide/bgipc/output/html/multipage/mmapp.html
 
 
-Date: 2009-06-10.
-Parser related code was moved to 'src/parse.c'
 
-Date: 2009-06-17.
-The code related with FUSE operations was moved to 'src/fuse_ops.c'.
 
 
 src/parse.c:
