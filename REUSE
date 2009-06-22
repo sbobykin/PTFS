@@ -1,7 +1,22 @@
 src/ptfs.c:
 ===========
 
-Date: 2006-06-19
+Date: 2009-06-22
+The code for handling version and help options 
+was reused from 'Hello_World_(fuse_opt.h)' and
+sshfs version 2.7.
+The web page of 'Hello_World_(fuse_opt.h)' example:
+http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
+The web site of the sshfs project: http://fuse.sourceforge.net/sshfs.html.
+
+Use 'FUSE_OPTION_' keyword to find out
+reused code from 'Hello_World_(fuse_opt.h)'
+
+The code in the function 'sshfs_opt_proc' (the file: 'sshfs.c')
+from sshfs version 2.7 was used as a template for the function 'ptfs_opt_proc'.
+
+
+Date: 2009-06-19
 The code in the function 'map_file_to_str' earlier reused from 
 'http://beej.us/guide/bgipc/output/html/multipage/mmapp.html'
 was rewritten from scratch using glib functions 'g_mapped_file.*'. 

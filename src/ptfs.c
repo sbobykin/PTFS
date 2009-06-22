@@ -36,35 +36,75 @@ static struct options {
 
 #define PTFS_OPT_KEY(t, p, v) { t, offsetof(struct options, p), v }
 
+/** keys for FUSE_OPT_ options */
+enum
+{
+   KEY_VERSION,
+   KEY_HELP,
+};
+
+
 static struct fuse_opt ptfs_opts[] = {
-	PTFS_OPT_KEY("-h", help, 1),
-	PTFS_OPT_KEY("-help", help, 1),
-	PTFS_OPT_KEY("-v", version, 1),
-	PTFS_OPT_KEY("--version", version, 1),
 	PTFS_OPT_KEY("-g %s", grammar, 0),
 	PTFS_OPT_KEY("--grammar=%s", grammar, 0),
 	PTFS_OPT_KEY("-i %s", input, 0),
 	PTFS_OPT_KEY("--input=%s", input, 0),
+
+	FUSE_OPT_KEY("-V",             KEY_VERSION),
+	FUSE_OPT_KEY("--version",      KEY_VERSION),
+	FUSE_OPT_KEY("-h",             KEY_HELP),
+	FUSE_OPT_KEY("--help",         KEY_HELP),
+
 	FUSE_OPT_END
 };
 
 void print_usage(FILE *F, int exit_code)
 {
 	fprintf(F,"\
-Usage: %s -g GRAMMARFILE -i INPUTFILE  mountpoint\n\
-  -h, --help			Print help\n\
-  -v, --version			Print version\n\
-  -g, --grammar=GRAMMARFILE	Set file name with a grammar\n\
-  -i, --input=INPUTFILE		Set file name with an input text\n", 
+general options:\n\
+    -o opt,[opt...]        mount options\n\
+    -h   --help            print help\n\
+    -V   --version         print version\n\
+\n\
+PTFS options:\n\
+    -g, --grammar=GRAMMARFILE	Set file name with a grammar\n\
+    -i, --input=INPUTFILE	Set file name with an input text\n\n", 
     program_name);
-	
-	exit(exit_code);
+
 }
 
 void print_version()
 {
-	printf("ptfs version 0.0.2.1\n");
-	exit(0);
+	fprintf(stderr, "PTFS version 0.0.2.1\n");
+}
+
+static int ptfs_opt_proc(void *data, const char *arg, int key,
+                          struct fuse_args *outargs)
+{
+	(void) data;
+
+	switch (key) {
+	case FUSE_OPT_KEY_OPT:
+	case FUSE_OPT_KEY_NONOPT:
+		break;
+
+	case KEY_HELP:
+                print_usage(stderr, 1);
+		fuse_opt_add_arg(outargs, "-ho");
+		fuse_main(outargs->argc, outargs->argv, &ptfs_ops);
+		exit(0);
+
+        case KEY_VERSION:
+		print_version();
+		fuse_opt_add_arg(outargs, "--version");
+		fuse_main(outargs->argc, outargs->argv, &ptfs_ops);
+		exit(0);
+
+	default:
+		fprintf(stderr, "internal error\n");
+		abort();
+	}
+
 }
 
 
@@ -102,14 +142,8 @@ int main(int argc, char** argv)
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	memset(&options, 0, sizeof(struct options));
-	if (fuse_opt_parse(&args, &options, ptfs_opts, NULL) == -1)
+	if (fuse_opt_parse(&args, &options, ptfs_opts, ptfs_opt_proc) == -1)
 		print_usage(stderr, -1);
-	
-	if(options.version)
-		print_version();
-	
-	if(options.help)
-		print_usage(stdout, 0);
 
 	if(options.grammar && options.input) {
 		/* read grammar */
@@ -117,8 +151,11 @@ int main(int argc, char** argv)
 		/* read input */
 		parse_file(options.input);
 	}
-	else
-		print_usage(stderr, -1);
+	else {
+		fprintf(stderr, "no grammar and input files\n");
+		fprintf(stderr, "type 'ptfs -h' for usage\n");
+		//exit(1);
+	}
 
 	fuse_main(args.argc, args.argv, &ptfs_ops);
 	fuse_opt_free_args(&args);
