@@ -26,13 +26,14 @@
 
 const char* program_name = "ptfs";
 
-static struct options {
+struct options {
 	char* grammar;
 	char* input;
 	int help;
 	int version;
 } options;
 
+static GList* input_files = NULL;
 
 #define PTFS_OPT_KEY(t, p, v) { t, offsetof(struct options, p), v }
 
@@ -41,6 +42,7 @@ enum
 {
    KEY_VERSION,
    KEY_HELP,
+   KEY_FULL_HELP
 };
 
 
@@ -54,6 +56,8 @@ static struct fuse_opt ptfs_opts[] = {
 	FUSE_OPT_KEY("--version",      KEY_VERSION),
 	FUSE_OPT_KEY("-h",             KEY_HELP),
 	FUSE_OPT_KEY("--help",         KEY_HELP),
+	FUSE_OPT_KEY("-fh",            KEY_FULL_HELP),
+	FUSE_OPT_KEY("--fhelp",        KEY_FULL_HELP),
 
 	FUSE_OPT_END
 };
@@ -61,14 +65,16 @@ static struct fuse_opt ptfs_opts[] = {
 void print_usage(FILE *F, int exit_code)
 {
 	fprintf(F,"\
+usage: %s -g GRAMMARFILE INPUTFILES MOUNTPOINT\n\
+\n\
 general options:\n\
     -o opt,[opt...]        mount options\n\
-    -h   --help            print help\n\
+    -h   --help            print short help\n\
+    -fh  --fhelp           print full help\n\
     -V   --version         print version\n\
 \n\
 PTFS options:\n\
-    -g, --grammar=GRAMMARFILE	Set file name with a grammar\n\
-    -i, --input=INPUTFILE	Set file name with an input text\n\n", 
+    -g, --grammar=GRAMMARFILE	Set file name with a grammar\n\n",
     program_name);
 
 }
@@ -82,16 +88,21 @@ static int ptfs_opt_proc(void *data, const char *arg, int key,
                           struct fuse_args *outargs)
 {
 	(void) data;
+	static int is=0;
 
 	switch (key) {
-	case FUSE_OPT_KEY_OPT:
 	case FUSE_OPT_KEY_NONOPT:
-		break;
-
-	case KEY_HELP:
+		input_files = g_list_append(input_files, arg);
+		return 0;
+		
+	case KEY_FULL_HELP:
                 print_usage(stderr, 1);
 		fuse_opt_add_arg(outargs, "-ho");
 		fuse_main(outargs->argc, outargs->argv, &ptfs_ops);
+		exit(0);
+	
+	case KEY_HELP:
+                print_usage(stderr, 1);
 		exit(0);
 
         case KEY_VERSION:
@@ -134,6 +145,7 @@ int cmp(char* s1, char* s2)
 	return !strcmp(s1, s2);
 }
 
+
 int main(int argc, char** argv)
 {
 	caml_startup(argv);
@@ -145,19 +157,29 @@ int main(int argc, char** argv)
 	if (fuse_opt_parse(&args, &options, ptfs_opts, ptfs_opt_proc) == -1)
 		print_usage(stderr, -1);
 
-	if(options.grammar && options.input) {
+	GList* mount_point = g_list_last (input_files);
+	g_list_remove_link(input_files, mount_point);
+	if(options.grammar && input_files) {
 		/* read grammar */
 		grammar = map_file_to_str(options.grammar, NULL);
 		/* read input */
-		parse_file(options.input);
+		GList* glist_iter = input_files;
+		for(; glist_iter; glist_iter = glist_iter->next)
+			parse_file(glist_iter->data);
 	}
 	else {
 		fprintf(stderr, "no grammar and input files\n");
-		fprintf(stderr, "type 'ptfs -h' for usage\n");
-		//exit(1);
+		fprintf(stderr, "try 'ptfs -h' for usage\n");
+		exit(1);
 	}
 
-	fuse_main(args.argc, args.argv, &ptfs_ops);
+	char* fuse_args[2];
+	fuse_args[0] = argv[0];
+	fuse_args[1] = mount_point->data;
+	
+	g_list_free(input_files);
 	fuse_opt_free_args(&args);
+
+	fuse_main(2, fuse_args, &ptfs_ops);
 	return 0;
 }

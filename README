@@ -27,7 +27,7 @@ To install, run:
 USAGE EXAMPLE
 =============
 To mount a new parse tree type:
-	$ ptfs -g examples/arith.peg -i examples/text  mountpoint
+	$ ptfs -g examples/arith.peg examples/text  mountpoint
 
 To see the subtext related with a node (directory) in a parse tree 
 use something like:
