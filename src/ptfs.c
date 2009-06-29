@@ -91,6 +91,9 @@ static int ptfs_opt_proc(void *data, const char *arg, int key,
 	static int is=0;
 
 	switch (key) {
+	case FUSE_OPT_KEY_OPT:
+		return 1;
+
 	case FUSE_OPT_KEY_NONOPT:
 		input_files = g_list_append(input_files, arg);
 		return 0;
@@ -178,8 +181,10 @@ int main(int argc, char** argv)
 	fuse_args[1] = mount_point->data;
 	
 	g_list_free(input_files);
-	fuse_opt_free_args(&args);
 
-	fuse_main(2, fuse_args, &ptfs_ops);
+	fuse_opt_add_arg(&args, mount_point->data);
+	
+	fuse_main(args.argc, args.argv, &ptfs_ops);
+	fuse_opt_free_args(&args);
 	return 0;
 }
