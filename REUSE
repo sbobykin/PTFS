@@ -26,6 +26,19 @@ The code related with FUSE operations was moved to 'src/fuse_ops.c'.
 
 Date: 2009-06-10.
 Parser related code was moved to 'src/parse.c'
+
+Date: 2009-04-18.
+The following code was reused from http://fuse.sourceforge.net/helloworld.html
+('hello_read' function) in the 'ptfs_write' function:
+"  
+   if (offset < len) {
+        if (offset + size > len)
+            size = len - offset;
+        memcpy(buf, hello_str + offset, size);
+    } else
+        size = 0;
+".
+
  
 Date: 2009-04-09.
 Parser related code from Cocom project was removed.

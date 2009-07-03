@@ -122,7 +122,7 @@ static int ptfs_opt_proc(void *data, const char *arg, int key,
 }
 
 
-char* map_file_to_str (char* pathname, int* size)
+char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
 {
 	GError* error = NULL;
 	GMappedFile* mf = g_mapped_file_new(pathname, FALSE, &error);
@@ -140,6 +140,9 @@ char* map_file_to_str (char* pathname, int* size)
 	if(size)
 		*size = g_mapped_file_get_length(mf); 
 
+	if(retmf)
+		*retmf = mf;
+
 	return data;
 }
 
@@ -154,6 +157,7 @@ int main(int argc, char** argv)
 	caml_startup(argv);
 
 	files = g_hash_table_new(g_str_hash, cmp);
+	fparsed_size = 1;
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	memset(&options, 0, sizeof(struct options));
@@ -164,11 +168,12 @@ int main(int argc, char** argv)
 	g_list_remove_link(input_files, mount_point);
 	if(options.grammar && input_files) {
 		/* read grammar */
-		grammar = map_file_to_str(options.grammar, NULL);
+		grammar = map_file_to_str(options.grammar, NULL, NULL);
 		/* read input */
 		GList* glist_iter = input_files;
-		for(; glist_iter; glist_iter = glist_iter->next)
+		for(; glist_iter; glist_iter = glist_iter->next) {
 			parse_file(glist_iter->data);
+		}
 	}
 	else {
 		fprintf(stderr, "no grammar and input files\n");
@@ -176,10 +181,6 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	char* fuse_args[2];
-	fuse_args[0] = argv[0];
-	fuse_args[1] = mount_point->data;
-	
 	g_list_free(input_files);
 
 	fuse_opt_add_arg(&args, mount_point->data);

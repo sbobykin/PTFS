@@ -17,10 +17,15 @@
 int parse_file(char* file_name)
 {
 	int in_size;
-	char* input = map_file_to_str(file_name, &in_size);
 	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
+	char* input = map_file_to_str(file_name, &in_size, &(pars_obj->mf));
 	pars_obj->input = input;
 	pars_obj->in_size = in_size;
+	pars_obj->full_path = realpath(file_name, NULL);
+	//asprintf(&(pars_obj->full_path), 
+	//	 "%s/%s", get_current_dir_name(), basename(file_name));
+	pars_obj->full_path_size = strlen(pars_obj->full_path);
+	fparsed_size += pars_obj->full_path_size + 1;
 	
 	/* Reused code from aurochs/cnog/check.c (begin)*/
 	unsigned char *peg_data;
@@ -87,15 +92,32 @@ int parse_file(char* file_name)
 					printf("Error at %d\n", error_pos);
 				}
 
+				pars_obj->cx = cx;
 				//?peg_delete_context(cx);
 			}
+			pars_obj->s2 = s2;
 			//?staloc_dispose(s2);
+			
 			//free(buf);
 
 			/* cnog_free_program(&st->s_alloc, pg); */
+			
+			pars_obj->st = st;
 			//?staloc_dispose(st);
 		}
 	}
 	return rc;
 	/* Reused code from aurochs/cnog/check.c (end) */
+}
+
+void unparse_file(char* file_name)
+{
+	struct pars_obj* pars_obj = g_hash_table_lookup(files, file_name);
+	peg_delete_context(pars_obj->cx);
+	staloc_dispose(pars_obj->s2);
+	staloc_dispose(pars_obj->st);
+	g_mapped_file_free(pars_obj->mf);
+	fparsed_size -= pars_obj->full_path_size - 1;
+	free(pars_obj->full_path);
+	g_hash_table_remove(files, file_name);
 }

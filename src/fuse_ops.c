@@ -18,12 +18,17 @@
 
 #include "ptfs.h"
 
+int ptfs_truncate (const char* path, off_t size) 
+{
+	return 0;
+}
+
 struct fuse_operations ptfs_ops = {
+	.truncate = ptfs_truncate,
 	.getattr = ptfs_getattr,
 	.readdir = ptfs_readdir,
-	//.open	= ptfs_open,
 	.read	= ptfs_read,
-	//.write = ptfs_write,
+	.write = ptfs_write,
 };
 
 int ptfs_getattr(const char *path, struct stat *stbuf)
@@ -36,6 +41,20 @@ int ptfs_getattr(const char *path, struct stat *stbuf)
 	retval = 0;
 	
 	memset(stbuf, 0, sizeof(struct stat));
+
+	if(strcmp(path, "/__parsed") == 0) {
+		stbuf->st_mode = S_IFREG | 0666;
+		stbuf->st_nlink = 1;	
+		stbuf->st_size = fparsed_size;
+		return 0;
+	}
+
+	if(strcmp(path, "/__unparse") == 0) {
+		stbuf->st_mode = S_IFREG | 0666;
+		stbuf->st_nlink = 1;	
+		stbuf->st_size = 0;
+		return 0;
+	}
 
 	status = get_node(path, &cur_tr, &pars_obj);
 	switch(status) {
@@ -80,8 +99,11 @@ int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		filler(buf, ".", NULL, 0);
 		filler(buf, "..", NULL, 0);
 		GList* flist = g_hash_table_get_keys(files);
-		for(; flist; flist=flist->next)
-			filler(buf, basename(flist->data), NULL, 0);
+		for(; flist; flist=flist->next) {
+			filler(buf, flist->data, NULL, 0);
+		}
+		filler(buf, "__parsed", NULL, 0);
+		filler(buf, "__unparse", NULL, 0);
 		goto out;
 	}
 
@@ -116,32 +138,38 @@ out:
 	return retval;
 }
 
+int ptfs_read_from_parsed(char *buf, size_t size, off_t offset)
+{
+	int my_len = 0;
+	int my_offset = 0;
+	GList* flist = g_hash_table_get_values(files);
+	for(; flist; flist=flist->next) {
+		struct pars_obj* pars_obj = flist->data;
+		my_len = strlen(pars_obj->full_path);
+		memcpy(buf+my_offset, pars_obj->full_path, my_len);
+		my_offset += my_len;
+		memcpy(buf+my_offset, "\n", 2);
+		my_offset += 2;
+	}
+	return fparsed_size;
+}
+
 int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
-                      struct fuse_file_info *fi)
+	      struct fuse_file_info *fi)
 {
 	size_t len;
 	(void) fi;
 
-	//int i;
 	int s_begin;
 	tree cur_tr;
 	struct pars_obj* pars_obj;
+
+	if(strcmp(path, "/__parsed") == 0) {
+		return ptfs_read_from_parsed(buf, size, offset);
+	}
+
 	int status = get_node(path, &cur_tr, &pars_obj);
 	substring* text;
-
-	/*char* tok;
-	struct pt_node* cur_node = pt_root_node;
-
-	tok = strtok(path, "/");
-	while(tok) {
-		for(i = 0; i < cur_node->childs_num; i++) {
-			if( strcmp(tok+5, cur_node->childs[i]->repr) == 0 ) {
-				cur_node = cur_node->childs[i];
-				break;
-			}
-		}
-		tok = strtok(NULL, "/");
-	}*/
 
 	if(cur_tr->t_element.t_node.n_attributes) {
 		text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
@@ -167,4 +195,27 @@ int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
 	//buf[len] = '\n';
 
 	return size;
+}
+
+int ptfs_write (const char* path, const char* buf, size_t size, off_t offset,
+	   struct fuse_file_info* fi)
+{
+	(void) fi;
+	if(strcmp(path, "/__unparse") == 0)
+	{
+		char fname[size];
+		memcpy(fname, buf, size);
+		fname[size-1] = '\0';
+		unparse_file(fname);
+		return size;
+	}
+
+	if(strcmp(path, "/__parsed") == 0)
+	{
+		char* fname = malloc( size );
+		memcpy(fname, buf, size);
+		fname[size-1] = '\0';
+		parse_file(fname);
+		return size;
+	}
 }
