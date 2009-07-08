@@ -8,6 +8,8 @@
 #define unknown 0
 
 GHashTable* files;
+GHashTable* read_op_hash;
+
 tree tr;
 
 struct pars_obj {

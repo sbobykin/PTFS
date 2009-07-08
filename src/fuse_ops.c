@@ -17,6 +17,8 @@
 #include <string.h>
 
 #include "ptfs.h"
+#include "read.h"
+
 
 int ptfs_truncate (const char* path, off_t size) 
 {
@@ -138,63 +140,27 @@ out:
 	return retval;
 }
 
-int ptfs_read_from_parsed(char *buf, size_t size, off_t offset)
-{
-	int my_len = 0;
-	int my_offset = 0;
-	GList* flist = g_hash_table_get_values(files);
-	for(; flist; flist=flist->next) {
-		struct pars_obj* pars_obj = flist->data;
-		my_len = strlen(pars_obj->full_path);
-		memcpy(buf+my_offset, pars_obj->full_path, my_len);
-		my_offset += my_len;
-		memcpy(buf+my_offset, "\n", 2);
-		my_offset += 2;
-	}
-	return fparsed_size;
-}
 
-int ptfs_read(const char *path, char *buf, size_t size, off_t offset,
-	      struct fuse_file_info *fi)
+
+int ptfs_read (const char *path, char *buf, size_t size, off_t offset,
+	       struct fuse_file_info *fi)
 {
-	size_t len;
 	(void) fi;
 
-	int s_begin;
-	tree cur_tr;
-	struct pars_obj* pars_obj;
+
+	struct read_op_context read_op_context = {
+		.path = path,
+		.buf = buf,
+		.size = size,
+		.offset = offset,
+	};
 
 	if(strcmp(path, "/__parsed") == 0) {
-		return ptfs_read_from_parsed(buf, size, offset);
+		return ptfs_read_from_parsed(&read_op_context);
 	}
 
-	int status = get_node(path, &cur_tr, &pars_obj);
-	substring* text;
+	ptfs_read_from_text(&read_op_context);
 
-	if(cur_tr->t_element.t_node.n_attributes) {
-		text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
-		len = text->s_end - text->s_begin;
-		s_begin = text->s_begin;
-	}
-	else {
-		len = pars_obj->in_size;
-		s_begin = 0;
-	}
-
-	if (offset < len) {
-		if (offset + size > len)
-			size = len - offset;
-		memcpy(buf, pars_obj->input + s_begin + offset, size);
-	} 
-	else {
-		buf[len] = '\n';
-		size = 0;
-	}
-
-	//memcpy(buf, input + s_begin + offset, len);
-	//buf[len] = '\n';
-
-	return size;
 }
 
 int ptfs_write (const char* path, const char* buf, size_t size, off_t offset,

@@ -68,9 +68,6 @@ This file was created using three sources by Stanislav Bobykin.
   http://beej.us/guide/bgipc/output/html/multipage/mmapp.html
 
 
-
-
-
 src/parse.c:
 ============
 
@@ -91,6 +88,15 @@ The code initially was created using examples from
   http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
 as a template.
 Struct 'hello_oper' was renamed to 'ptfs_ops'
+
+
+src/read.c
+==========
+
+Date: 2009-07-08.
+
+The code reused according to the note for 'src/ptfs.c' (date: 2009-04-18)
+was moved to this file.
 
 
 src/Makefile.am:

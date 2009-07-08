@@ -156,7 +156,9 @@ int main(int argc, char** argv)
 {
 	caml_startup(argv);
 
-	files = g_hash_table_new(g_str_hash, cmp);
+	files = g_hash_table_new (g_str_hash, cmp);
+	read_op_hash = g_hash_table_new (g_int_hash, g_int_equal);
+
 	fparsed_size = 1;
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
