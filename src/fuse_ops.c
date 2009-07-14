@@ -17,7 +17,6 @@
 #include <string.h>
 
 #include "ptfs.h"
-#include "read.h"
 
 
 int ptfs_truncate (const char* path, off_t size) 
@@ -65,10 +64,10 @@ int ptfs_getattr(const char *path, struct stat *stbuf)
 		stbuf->st_nlink = 1;
 		if(cur_tr->t_element.t_node.n_attributes) {
 			text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
-			stbuf->st_size = text->s_end - text->s_begin + 1;
+			stbuf->st_size = text->s_end - text->s_begin;
 		}
 		else
-			stbuf->st_size = pars_obj->in_size + 1;
+			stbuf->st_size = pars_obj->in_size;
 		break;
 	case isDir:
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -148,7 +147,7 @@ int ptfs_read (const char *path, char *buf, size_t size, off_t offset,
 	(void) fi;
 
 
-	struct read_op_context read_op_context = {
+	struct rw_op_context read_op_context = {
 		.path = path,
 		.buf = buf,
 		.size = size,
@@ -159,29 +158,33 @@ int ptfs_read (const char *path, char *buf, size_t size, off_t offset,
 		return ptfs_read_from_parsed(&read_op_context);
 	}
 
-	ptfs_read_from_text(&read_op_context);
+	if(strcmp(path, "/__unparse") == 0)
+		return 0;
+
+	return ptfs_read_from_text(&read_op_context);
 
 }
+
 
 int ptfs_write (const char* path, const char* buf, size_t size, off_t offset,
 	   struct fuse_file_info* fi)
 {
 	(void) fi;
+
+	struct rw_op_context write_op_context = {
+		.path = path,
+		.buf = buf,
+		.size = size,
+		.offset = offset,
+	};
+
 	if(strcmp(path, "/__unparse") == 0)
 	{
-		char fname[size];
-		memcpy(fname, buf, size);
-		fname[size-1] = '\0';
-		unparse_file(fname);
-		return size;
+		return ptfs_write_to_unparse (&write_op_context);
 	}
 
 	if(strcmp(path, "/__parsed") == 0)
 	{
-		char* fname = malloc( size );
-		memcpy(fname, buf, size);
-		fname[size-1] = '\0';
-		parse_file(fname);
-		return size;
+		return ptfs_write_to_parsed (&write_op_context);
 	}
 }

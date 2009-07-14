@@ -28,7 +28,6 @@ const char* program_name = "ptfs";
 
 struct options {
 	char* grammar;
-	char* input;
 	int help;
 	int version;
 } options;
@@ -49,8 +48,6 @@ enum
 static struct fuse_opt ptfs_opts[] = {
 	PTFS_OPT_KEY("-g %s", grammar, 0),
 	PTFS_OPT_KEY("--grammar=%s", grammar, 0),
-	PTFS_OPT_KEY("-i %s", input, 0),
-	PTFS_OPT_KEY("--input=%s", input, 0),
 
 	FUSE_OPT_KEY("-V",             KEY_VERSION),
 	FUSE_OPT_KEY("--version",      KEY_VERSION),
@@ -65,7 +62,7 @@ static struct fuse_opt ptfs_opts[] = {
 void print_usage(FILE *F, int exit_code)
 {
 	fprintf(F,"\
-usage: %s -g GRAMMARFILE INPUTFILES MOUNTPOINT\n\
+usage: %s -g GRAMMARFILE [INPUTFILES] MOUNTPOINT\n\
 \n\
 general options:\n\
     -o opt,[opt...]        mount options\n\
@@ -134,7 +131,7 @@ char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
 			fprintf(stderr, 
 				"map_file_to_str %s: unkown error\n", 
 				pathname);
-		exit(1);
+		return NULL;
 	}
 
 	if(size)
@@ -146,20 +143,14 @@ char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
 	return data;
 }
 
-int cmp(char* s1, char* s2)
-{
-	return !strcmp(s1, s2);
-}
-
-
 int main(int argc, char** argv)
 {
 	caml_startup(argv);
 
-	files = g_hash_table_new (g_str_hash, cmp);
+	files = g_hash_table_new (g_str_hash, g_str_equal);
 	read_op_hash = g_hash_table_new (g_int_hash, g_int_equal);
 
-	fparsed_size = 1;
+	fparsed_size = 0;
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	memset(&options, 0, sizeof(struct options));
@@ -167,25 +158,28 @@ int main(int argc, char** argv)
 		print_usage(stderr, -1);
 
 	GList* mount_point = g_list_last (input_files);
-	g_list_remove_link(input_files, mount_point);
-	if(options.grammar && input_files) {
+	if(options.grammar) {
 		/* read grammar */
 		grammar = map_file_to_str(options.grammar, NULL, NULL);
+
 		/* read input */
 		GList* glist_iter = input_files;
-		for(; glist_iter; glist_iter = glist_iter->next) {
+		for(; glist_iter != mount_point; 
+		      glist_iter = glist_iter->next) {
+
 			parse_file(glist_iter->data);
 		}
 	}
 	else {
-		fprintf(stderr, "no grammar and input files\n");
+		fprintf(stderr, "no grammar\n");
 		fprintf(stderr, "try 'ptfs -h' for usage\n");
 		exit(1);
 	}
 
-	g_list_free(input_files);
+	if(mount_point)
+		fuse_opt_add_arg(&args, mount_point->data);
 
-	fuse_opt_add_arg(&args, mount_point->data);
+	g_list_free(input_files);
 	
 	fuse_main(args.argc, args.argv, &ptfs_ops);
 	fuse_opt_free_args(&args);

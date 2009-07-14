@@ -17,13 +17,19 @@
 int parse_file(char* file_name)
 {
 	int in_size;
+	GMappedFile* mf;
+	char* input = map_file_to_str(file_name, &in_size, &mf);
+	if( ! (int) input |
+	    (int) g_hash_table_lookup (files, basename(file_name)) )
+		return 0;
+
 	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
-	char* input = map_file_to_str(file_name, &in_size, &(pars_obj->mf));
+	pars_obj->mf = mf;
+
+
 	pars_obj->input = input;
 	pars_obj->in_size = in_size;
 	pars_obj->full_path = realpath(file_name, NULL);
-	//asprintf(&(pars_obj->full_path), 
-	//	 "%s/%s", get_current_dir_name(), basename(file_name));
 	pars_obj->full_path_size = strlen(pars_obj->full_path);
 	fparsed_size += pars_obj->full_path_size + 1;
 	
@@ -83,8 +89,9 @@ int parse_file(char* file_name)
 					//printf("Parsed as %p.\n", tr);
 					//ptree_dump_tree(cx->cx_builder_info, stdout, buf, tr, 0);
 					pars_obj->tr = tr;
+					char* bname = strdup (basename(file_name));
 					g_hash_table_insert(files, 
-							basename(file_name), pars_obj);
+							bname, pars_obj);
 
 				} else {
 					printf("Doesn't parse.\n");
@@ -112,12 +119,18 @@ int parse_file(char* file_name)
 
 void unparse_file(char* file_name)
 {
-	struct pars_obj* pars_obj = g_hash_table_lookup(files, file_name);
-	peg_delete_context(pars_obj->cx);
-	staloc_dispose(pars_obj->s2);
-	staloc_dispose(pars_obj->st);
-	g_mapped_file_free(pars_obj->mf);
-	fparsed_size -= pars_obj->full_path_size - 1;
-	free(pars_obj->full_path);
-	g_hash_table_remove(files, file_name);
+	char* orig_key;
+	struct pars_obj* pars_obj = NULL;
+	g_hash_table_lookup_extended (files, file_name, &orig_key, &pars_obj);
+
+	if(pars_obj) {
+		peg_delete_context(pars_obj->cx);
+		staloc_dispose(pars_obj->s2);
+		staloc_dispose(pars_obj->st);
+		g_mapped_file_free(pars_obj->mf);
+		fparsed_size -= pars_obj->full_path_size - 1;
+		free(pars_obj->full_path);
+		g_hash_table_remove(files, file_name);
+		free(orig_key);
+	}
 }

@@ -9,7 +9,7 @@ The web page of 'Hello_World_(fuse_opt.h)' example:
 http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
 The web site of the sshfs project: http://fuse.sourceforge.net/sshfs.html.
 
-Use 'FUSE_OPTION_' keyword to find out
+Use 'FUSE_OPT_' keyword to find out
 reused code from 'Hello_World_(fuse_opt.h)'
 
 The code in the function 'sshfs_opt_proc' (the file: 'sshfs.c')
@@ -90,13 +90,14 @@ as a template.
 Struct 'hello_oper' was renamed to 'ptfs_ops'
 
 
-src/read.c
-==========
+src/rw.c (src/read.c previously)
+================================
 
 Date: 2009-07-08.
 
 The code reused according to the note for 'src/ptfs.c' (date: 2009-04-18)
 was moved to this file.
+This note was actual for the renamed file 'src/read.c' too.
 
 
 src/Makefile.am:

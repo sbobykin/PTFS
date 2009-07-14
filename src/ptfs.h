@@ -37,6 +37,7 @@ int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj);
 unsigned char* compile(char*, int*);
 
 
+/* fuse operations */
 int ptfs_getattr(const char *path, struct stat *stbuf);
 int ptfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                   off_t offset, struct fuse_file_info *fi);
@@ -46,3 +47,17 @@ int ptfs_write(const char *path, const char *buf, size_t size, off_t offset,
                       struct fuse_file_info *fi);
 
 struct fuse_operations ptfs_ops;
+
+/* Handlers for read and write operations */
+static struct rw_op_context {
+	char* path;
+	char* buf;
+	size_t size;
+	off_t offset;
+};
+
+int ptfs_read_from_parsed(struct rw_op_context* read_op_context);
+int ptfs_read_from_text(struct rw_op_context* read_op_context);
+
+int ptfs_write_to_parsed(struct rw_op_context* write_op_context);
+int ptfs_write_to_unparse(struct rw_op_context* write_op_context);
