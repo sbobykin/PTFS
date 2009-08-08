@@ -1,81 +1,42 @@
-start ::= glob_scope EOF;
-
-sp_smb ::= (' '|'\n'|'\t');
-sp ::= (comment|' '|'\n'|'\t')*;
-sp_ne ::= sp_smb+;
-comment ::= "(*" (~"*)" sigma)* "*)";
-
-word ::=(~sp_smb sigma)+;
-word_no_semicol ::= (~(sp_smb|";"|spec_smb) sigma)+;
-word_no_semicol2 ::= (~(sp_smb|";") sigma)+;
-spec_smb ::= "|" | "(" | ")" | "=" | [0-9] | "[" | "]" | (~"->" "-") | "::" |"." ;
-
-
-not_let_word ::= ~("let"|"module"|"open") word;
-
-let ::= "let" ;
-in ::= "in";
-then ::= "then";
-begin ::= "begin";
-end ::= "end";
-
-openkeyword ::= "in"|"then"|"begin"|"try"|"->"|(~";;" ";");
-keyword ::= "if" ;
-not_let_not_keyword ::= ~(let|openkeyword|keyword) word_no_semicol;
-not_let_not_openkeyword ::= ~(let|openkeyword) word_no_semicol2;
-
-id ::= [a-zA-Z_][0-9a-zA-Z_]*
+start ::= (open | fdef | sigma)* EOF
 ;
 
-symbol_package_case ::= smb | spec_smb | keyword
+id ::= [a-zA-Z_][a-zA-Z0-9_]*
 ;
 
-(*some ::= not_let_not_openkeyword;*)
-
-(*some ::= symbol_package_case;*)
-
-some ::= package_case;
-
-smb ::=
-	<package> 
-		<pname> not_let_not_keyword </pname> 
-		"."
-	 	<psymbol> not_let_not_keyword </psymbol>
-	</package>
-	
-	| <symbol> not_let_not_keyword </symbol>
+pid ::= [A-Z_][a-zA-Z0-9_]*
 ;
 
-
-package_case ::=
-	<package> 
-		<pname> id </pname> 
-		"."
-	 	<psymbol> id </psymbol>
-	</package>
-	| not_let_not_openkeyword
+sp ::= [ \n\t\r]*
 ;
 
-
-glob_scope ::= ((glob_fdef|module_def|open_def)? (sp not_let_word* sp)*)*;
-loc_scope ::= 
-	(
-		(sp openkeyword)+
-		((sp fdef)|(sp some)+)
-	)+
+string ::= '"' (~'"' sigma)* '"'
 ;
 
-module_def ::= <module> "module" sp_ne <mname> id </mname> 
-	       sp "=" sp <pname> id </pname> </module>;
-open_def ::= "open" sp_ne <open> id </open>;
-
-glob_fdef ::= <fdef> "let" sp glob_fdecl sp "=" 
-	((sp fdef) | (sp some)+) sp loc_scope? </fdef>
-;
-glob_fdecl ::= <fdecl> word </fdecl> (sp ( ~"=" word | ("?" sp word sp "=" sp word)?) )* ;
-
-fdef ::= "let" sp fdecl sp "=" 
-	((sp fdef) | (sp some)+) sp loc_scope?
+fdef_pref ::= (EOF | '\n') "let"
 ;
 
-fdecl ::= word (sp ( ~"=" word | ("?" sp word sp "=" sp word)?) )* ;
+fdef_sigma ::= ~fdef_pref sigma
+;
+
+fdecl ::= "let" (some | ~'=' sigma)* '='
+;
+
+some ::=  '?' sp '(' (~')' sigma)* ')'
+;
+
+comment ::= "(*" (~"*)" sigma)* "*)"; 
+
+open ::= (EOF | '\n') "open" sp <open> id </open>
+;
+
+fdef ::= (EOF | '\n') <fdef>  fdecl (try_symbol | fdef_sigma)* </fdef>
+;
+
+try_symbol ::= 
+	fdecl
+	| comment
+	| string
+	| <package> <pname> pid </pname> '.' id </package>
+	| <symbol> id </symbol>
+;

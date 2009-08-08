@@ -1,0 +1,24 @@
+start ::= (open | module | package | sigma)*
+;
+
+sp_smb ::= [ \n\t] | BOF
+;
+
+id ::= [a-zA-Z_][a-zA-Z0-9_]*
+;
+
+pid ::= [A-Z_][a-zA-Z0-9_]*
+;
+
+open ::= sp_smb "open" sp_smb+ <package> id </package>
+;
+
+package ::= <package> pid </package> '.' id
+;
+
+module ::= sp_smb "module" sp_smb+ 
+	   <module> 
+	     <mname> id </mname> sp_smb* '=' sp_smb* 
+	     <pname> id </pname> 
+	   </module>
+;
