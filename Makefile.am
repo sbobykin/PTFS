@@ -1,5 +1,5 @@
+#make -C aurochs/
 all:
-	make -C aurochs/
 	make -C src/
 
 clean:

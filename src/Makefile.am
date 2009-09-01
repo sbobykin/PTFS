@@ -1,4 +1,5 @@
 # This file contains reuse notes. See the file 'REUSE' for details.
+#ocamlopt.opt -output-obj -o aurochs_lib.o unix.cmxa ../aurochs/_build/aurochs_pack.cmx	
 
 OCAMLC_CCOPT=-ccopt -I../aurochs/include/ -ccopt -g
 DEPS_OCAMLC_CCOPT=`for i in $(DEPS_CFLAGS); do echo -n  " -ccopt $$i "; done;`
@@ -6,7 +7,7 @@ DEPS_OCAMLC_CCOPT=`for i in $(DEPS_CFLAGS); do echo -n  " -ccopt $$i "; done;`
 bin_PROGRAMS = ptfs
 ptfs_SOURCES = ptfs.c ptfs.h parse.c get_node.c compilewrap.c fuse_ops.c rw.c
 ptfs_LDADD=aurochs_lib.o
-LIBS = -L ../aurochs/_build/ -L $(OCAMLLIB) -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
+LIBS = -L aurochs/ -L $(OCAMLLIB) -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
 #ptfs_DEPENDENCIES=$(ptfs_LDADD)
 COMPILE=$(CPP)
 
@@ -20,10 +21,11 @@ COMPILE=$(CPP)
 	$(OCAMLC) $(OCAMLC_CCOPT) $(DEPS_OCAMLC_CCOPT) $<
 	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 
-aurochs_lib.o: ../aurochs/_build/aurochs_pack.cmx
-	ocamlopt.opt -output-obj -o aurochs_lib.o unix.cmxa ../aurochs/_build/aurochs_pack.cmx	
+aurochs_lib.o: aurochs/aurochs_pack.cmx
+	ocamlopt.opt -output-obj -o aurochs_lib.o unix.cmxa aurochs/aurochs_pack.cmx	
 
-CLEANFILES = *.o $(bin_PROGRAMS) 
+CLEANFILES = *.o $(bin_PROGRAMS)
 
-#clean:
+#dist-clean:
 #	rm *.o ptfs
+#	rm -r .deps
