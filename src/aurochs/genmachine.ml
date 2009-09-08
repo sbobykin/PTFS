@@ -260,8 +260,8 @@ let gen_ocaml_packer ops fn =
 ;;
 
 let _ =
-  List.iter Unix_util.mkdirhier ["nog"; "backends"; "cnog"];
-  let ops = load_opcodes "nog/machine.ml" in
-  gen_ocaml_packer ops "backends/nog_packer.ml";
-  gen_c_unpacker ops "cnog/cnog_unpack.c" "include/cnog_unpack.h"
+  (* List.iter Unix_util.mkdirhier ["nog"; "backends"; "cnog"]; *) (* ptfs hack *)
+  let ops = load_opcodes "machine.ml" in
+  gen_ocaml_packer ops "nog_packer.ml";
+  gen_c_unpacker ops "cnog_unpack.c" "cnog_unpack.h"
 ;;

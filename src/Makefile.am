@@ -1,7 +1,7 @@
 # This file contains reuse notes. See the file 'REUSE' for details.
 #ocamlopt.opt -output-obj -o aurochs_lib.o unix.cmxa ../aurochs/_build/aurochs_pack.cmx	
 
-OCAMLC_CCOPT=-ccopt -I../aurochs/include/ -ccopt -g
+OCAMLC_CCOPT=-ccopt -Iaurochs -ccopt -g
 DEPS_OCAMLC_CCOPT=`for i in $(DEPS_CFLAGS); do echo -n  " -ccopt $$i "; done;`
 
 bin_PROGRAMS = ptfs
@@ -17,7 +17,7 @@ COMPILE=$(CPP)
 #	    -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)
 
 .c.o:
-	$(CPP) -M -MF $(DEPDIR)/$*.Tpo $(DEPS_CFLAGS) -I../aurochs/include/  $<
+	$(CPP) -M -MF $(DEPDIR)/$*.Tpo $(DEPS_CFLAGS) -Iaurochs  $<
 	$(OCAMLC) $(OCAMLC_CCOPT) $(DEPS_OCAMLC_CCOPT) $<
 	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 
