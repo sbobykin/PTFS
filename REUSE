@@ -1,7 +1,78 @@
-src/ptfs.c:
-===========
+Date: 2009-09-08
+Directories: aurochs/ , src/aurochs
+The files 
+	aurochs/aurochs.ml
+	util/boolean.ml
+	util/bytes.ml
+	front/canonify.ml
+	front/check.ml
+	aurochs/compiler.ml
+	front/convert_grammar.ml
+	util/int_operators.ml
+	nog/machine.ml
+	nog/nog.ml
+	backends/noggie.ml
+	aurochs/opt.ml
+	pack/pack.ml
+	peg/peg.ml
+	util/pffpsf.ml
+	util/seq.ml
+	aurochs/talk.ml
+	aurochs/talk_level.ml
+	util/util.ml
+	genmachine.ml
+	util/unix_util.ml
+	cnog/cnog.c
+	cnog/parse_tree.c
+	cutil/alloc.c
+	cutil/staloc.c
+	cutil/pushdown.c
+	aurochs/aurochs_native.c
+	include/alloc.h
+	include/cnog.h
+	include/pack.h
+	include/peg.h
+	include/base_types.h
+	include/staloc.h
+	include/pushdown.h
+	include/peg_lib.h
+	include/parse_tree.h
+was moved from 'aurochs/' to 'src/aurochs/'.
+The file 'aurochs/cpack/pack.c' was moved to 'src/aurochs/cpack.c'.
+
+The file 'src/aurochs/genmachine.ml' was modified,like shown below.
+
+Modified:
+=========
+let _ =
+  (* List.iter Unix_util.mkdirhier ["nog"; "backends"; "cnog"]; *) (* ptfs hack *)
+  let ops = load_opcodes "machine.ml" in
+  gen_ocaml_packer ops "nog_packer.ml";
+  gen_c_unpacker ops "cnog_unpack.c" "cnog_unpack.h"
+;;
+
+Original:
+=========
+let _ =
+  List.iter Unix_util.mkdirhier ["nog"; "backends"; "cnog"];
+  let ops = load_opcodes "nog/machine.ml" in
+  gen_ocaml_packer ops "backends/nog_packer.ml";
+  gen_c_unpacker ops "cnog/cnog_unpack.c" "include/cnog_unpack.h"
+;;
+
+
+
+
+Date: 2009-07-08.
+File: src/rw.c (src/read.c previously)
+
+The code reused according to the note for 'src/ptfs.c' (date: 2009-04-18)
+was moved to this file.
+This note was actual for the renamed file 'src/read.c' too.
 
 Date: 2009-06-22
+File: src/ptfs.c
+
 The code for handling version and help options 
 was reused from 'Hello_World_(fuse_opt.h)' and
 sshfs version 2.7.
@@ -17,93 +88,19 @@ from sshfs version 2.7 was used as a template for the function 'ptfs_opt_proc'.
 
 
 Date: 2009-06-19
+File: src/ptfs.c
+
 The code in the function 'map_file_to_str' earlier reused from 
 'http://beej.us/guide/bgipc/output/html/multipage/mmapp.html'
 was rewritten from scratch using glib functions 'g_mapped_file.*'. 
 
 Date: 2009-06-17.
-The code related with FUSE operations was moved to 'src/fuse_ops.c'.
-
-Date: 2009-06-10.
-Parser related code was moved to 'src/parse.c'
-
-Date: 2009-04-18.
-The following code was reused from http://fuse.sourceforge.net/helloworld.html
-('hello_read' function) in the 'ptfs_write' function:
-"  
-   if (offset < len) {
-        if (offset + size > len)
-            size = len - offset;
-        memcpy(buf, hello_str + offset, size);
-    } else
-        size = 0;
-".
-
- 
-Date: 2009-04-09.
-Parser related code from Cocom project was removed.
-New parser related code was derived from "cnog/check.c" of
-the Aurochs distribution version 1.0.93.
-The web site of the Aurochs project: http://aurochs.fr
-
-
-Date: 2008-11-14.
-This file was created using three sources by Stanislav Bobykin.
-
-- Parser related code was derived from "AMMUNITION/earlyey.c" of 
-  the Cocom distribution version 0.996. 
-  The web site of the Cocom project: http://cocom.sourceforge.net
-
-- FUSE related code was derived from 
-  http://fuse.sourceforge.net/helloworld.html
-  http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
-  The code form these examples was used as a template
-  for realizing the FUSE subsystem in PTFS.
-  Keywords for the FUSE related code:
-	'struct options'
-	'struct fuse_operations hello_oper'
-  Macros 'HELLOFS_OPT_KEY' was reused and renamed to 'PTFS_OPT_KEY'.
-
-- File reading (mmap) code was derived from 
-  http://beej.us/guide/bgipc/output/html/multipage/mmapp.html
-
-
-src/parse.c:
-============
-
-Date: 2009-06-10.
-
-This file contains the code for parsing, that was moved from 'src/ptfs.c'.
-The code that uses Aurochs parsing API was reused 
-from 'cnog/check.c' of the Aurochs distribution version 1.0.93.
-The web site of the Aurochs project: http://aurochs.fr
-
-src/fuse_ops.c:
-===============
-
-Date: 2009-06-17.
-The file contains code for FUSE operations, it was moved from from 'src/ptfs.c'.
-The code initially was created using examples from
-  http://fuse.sourceforge.net/helloworld.html
-  http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
-as a template.
-Struct 'hello_oper' was renamed to 'ptfs_ops'
-
-
-src/rw.c (src/read.c previously)
-================================
-
-Date: 2009-07-08.
-
-The code reused according to the note for 'src/ptfs.c' (date: 2009-04-18)
-was moved to this file.
-This note was actual for the renamed file 'src/read.c' too.
-
-
-src/Makefile.am:
-================
+Files: src/ptfs.c, src/fuse_ops.c
+The code related with FUSE operations was moved from 'src/ptfs.c' to 'src/fuse_ops.c'.
+The struct 'hello_oper' was renamed to 'ptfs_ops'
 
 Date: 2009-06-15.
+File: src/Makefile.am 
 The target .c.o was written using the analogous target from automatically 
 generated 'src/Makefile' (Automake verion 1.10.2 was used).
 
@@ -139,3 +136,63 @@ The file 'src/Makefile' contains copyright note, below is a text.
 # but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
+
+
+Date: 2009-06-10.
+Files: src/ptfs.c src/parse.c
+Parser related code was moved from 'src/ptfs.c' to 'src/parse.c'
+
+Date: 2009-04-18.
+File: src/ptfs.c
+The following code was reused from http://fuse.sourceforge.net/helloworld.html
+('hello_read' function) in the 'ptfs_write' function:
+"  
+   if (offset < len) {
+        if (offset + size > len)
+            size = len - offset;
+        memcpy(buf, hello_str + offset, size);
+    } else
+        size = 0;
+".
+
+ 
+Date: 2009-04-09.
+File: src/ptfs.c
+Directory: aurochs/
+Parser related code from Cocom project was removed.
+New parser related code was derived from "cnog/check.c" of
+the Aurochs distribution version 1.0.93.
+The web site of the Aurochs project: http://aurochs.fr
+The directory 'aurochs/' containing aurochs version 1.0.93  sources  
+was added and then modified to connect 'ptfs' and 'aurochs':
+	'aurochs/cnog/cnog.c': default attribute 'text' was added;
+	'aurochs/aurochs/compiler.ml': function 'compile1' was registered to
+	use ocaml function 'compile' in c code.
+	'src/compilewrap.c': contains code for calling ocaml compiler1 function.
+	'src/ptfs.c': modified for using Aurochs as a backend parser
+Modifications was marked by 'ptfs hack' keyword.
+
+Date: 2008-11-14.
+File: src/ptfs.c
+This file was created using three sources by Stanislav Bobykin.
+
+- Parser related code was derived from "AMMUNITION/earlyey.c" of 
+  the Cocom distribution version 0.996. 
+  The web site of the Cocom project: http://cocom.sourceforge.net
+
+- FUSE related code was derived from 
+  http://fuse.sourceforge.net/helloworld.html
+  http://apps.sourceforge.net/mediawiki/fuse/index.php?title=Hello_World_%28fuse_opt.h%29
+  The code from these examples was used as a template
+  for realizing the FUSE subsystem in PTFS.
+  Keywords for the FUSE related code:
+	'struct options'
+	'struct fuse_operations hello_oper'
+  Macros 'HELLOFS_OPT_KEY' was reused and renamed to 'PTFS_OPT_KEY'.
+
+- File reading (mmap) code was derived from 
+  http://beej.us/guide/bgipc/output/html/multipage/mmapp.html
+
+
+
+

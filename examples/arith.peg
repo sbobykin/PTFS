@@ -1,4 +1,6 @@
-(* The file was copied from 'aurochs/examples' *)
+(* The file was copied from 'examples/' directory of the aurochs source version 1.0.93 *)
+(* The file is slightly modified. Use ptfs hack keyword to find out modifications.*)
+
 (* Arithmetic expressions *)
 
 (* Tokens *)
