@@ -1,9 +1,0 @@
-syntax: glob
-
-_build/*
-_log
-.svn/*
-exa-classes/*
-*.json
-.ledit*
-.svnprev

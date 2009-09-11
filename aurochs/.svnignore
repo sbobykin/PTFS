@@ -1,6 +1,0 @@
-_log
-_build
-*/_build
-*.native
-.hg
-.svnprev
