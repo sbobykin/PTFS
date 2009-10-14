@@ -5,6 +5,7 @@ OCAMLC_CCOPT=-ccopt -Iaurochs -ccopt -g
 DEPS_OCAMLC_CCOPT=`for i in $(DEPS_CFLAGS); do echo -n  " -ccopt $$i "; done;`
 
 bin_PROGRAMS = ptfs
+man1_MANS = ../man/ptfs.1
 ptfs_SOURCES = ptfs.c ptfs.h parse.c get_node.c compilewrap.c fuse_ops.c rw.c
 ptfs_LDADD=aurochs_lib.o
 LIBS = -L aurochs/ -L $(OCAMLLIB) -laurochs -lunix -lasmrun -ldl -lm $(DEPS_LIBS)

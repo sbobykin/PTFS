@@ -11,4 +11,10 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-See the file gpl-3.0.txt for the GNU General Public License version 3.
+See the file gpl-3.0.txt for the GNU General Public License, version 3.
+
+PTFS uses Aurohcs (http://aurochs.fr) as 
+a backend parser (code in 'src/aurochs' subdir).
+Aurochs is under GNU Lesser General Public License, version 3.
+For the Aurochs authors and copyright notes see the file src/aurochs/AUROCHS_AUTHORS
+For the Aurochs license notes see the file src/aurochs/AUROCHS_LICENSE

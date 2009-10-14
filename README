@@ -39,9 +39,9 @@ To unmount use:
 AUROCHS CHANGES.
 ================
 PTFS uses Aurohcs (http://aurochs.fr) as 
-a backend parser (code in 'aurochs' subdir).
+a backend parser (code in 'src/aurochs' subdir).
 Aurochs slightly modified for the PTFS needs.
-To find out modifications use 'ptfs hack' phrase.
+To find out modifications use 'ptfs hack' phrase in the Aurochs code.
 
 
 Project contributor: Stanislav Bobykin.

@@ -170,7 +170,7 @@ was added and then modified to connect 'ptfs' and 'aurochs':
 	use ocaml function 'compile' in c code.
 	'src/compilewrap.c': contains code for calling ocaml compiler1 function.
 	'src/ptfs.c': modified for using Aurochs as a backend parser
-Modifications was marked by 'ptfs hack' keyword.
+Modifications were marked by 'ptfs hack' keyword.
 
 Date: 2008-11-14.
 File: src/ptfs.c

@@ -78,7 +78,7 @@ PTFS options:\n\
 
 void print_version()
 {
-	fprintf(stderr, "PTFS version 0.0.2.1\n");
+	fprintf(stderr, "PTFS version 0.0.3\n");
 }
 
 static int ptfs_opt_proc(void *data, const char *arg, int key,

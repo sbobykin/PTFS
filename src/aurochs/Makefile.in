@@ -1,3 +1,8 @@
+OCAMLMKLIB = @OCAMLMKLIB@
+OCAMLOPT= OCAMLRUNPARAM='l=10M' @OCAMLOPT@
+OCAMLC = OCAMLRUNPARAM='l=10M' @OCAMLC@
+OCAMLDEP = @OCAMLDEP@
+
 MLLIST = util.cmx  talk_level.cmx  pffpsf.cmx\
 	 opt.cmx  talk.cmx  seq.cmx  boolean.cmx  peg.cmx\
 	 int_operators.cmx  bytes.cmx  pack.cmx  machine.cmx \
@@ -10,28 +15,28 @@ CLIST = alloc.o  aurochs_native.o  cnog.o  cnog_unpack.o\
 
 
 all: $(MLLIST) $(CLIST)
-	ocamlopt.opt -pack -o aurochs_pack.cmx $(MLLIST) 
-	ocamlmklib -o aurochs $(CLIST)
+	$(OCAMLOPT) -pack -o aurochs_pack.cmx $(MLLIST) 
+	$(OCAMLMKLIB) -o aurochs $(CLIST)
 
 .SUFFIXES: .ml .mli .cmx .cmi
 
 grammar.cmi: grammar.mli
-	ocamlc grammar.mli
+	$(OCAMLC) grammar.mli
 
 .ml.cmx:
-	ocamlopt -for-pack Aurochs_pack -I . -c -o $@  $<
+	$(OCAMLOPT) -for-pack Aurochs_pack -I . -c -o $@  $<
 .c.o: 
-	ocamlc.opt -ccopt -I. -ccopt -g -ccopt -O2 -c $<
+	$(OCAMLOPT) -ccopt -I. -ccopt -g -ccopt -O2 -c $<
 
 clean:
 	rm genmachine.byte nog_packer.ml cnog_unpack.c cnog_unpack.h\
 	   *.cmx *.cmi *.cmo *.o libaurochs.a dllaurochs.so
 
 genmachine: 
-	ocamlc.opt unix.cma str.cma -g pffpsf.ml util.ml unix_util.ml genmachine.ml -o genmachine.byte
+	$(OCAMLC) unix.cma str.cma -g pffpsf.ml util.ml unix_util.ml genmachine.ml -o genmachine.byte
 	./genmachine.byte
 
 deps:
-	ocamldep *.ml > .deps
+	$(OCAMLDEP) *.ml > .deps
 
 include .deps

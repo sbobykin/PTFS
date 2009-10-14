@@ -1,3 +1,11 @@
+/* 
+ LICENSE: GNU General Public License version 3 
+          as published by the Free Software Foundation.
+          See the file 'gpl-3.0.txt' for details.
+*/
+
+/* This file contains reuse notes. See the file 'REUSE' for details. */
+
 #include "ptfs.h"
 
 int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj)
