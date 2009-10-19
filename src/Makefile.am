@@ -23,7 +23,7 @@ COMPILE=$(CPP)
 	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 
 aurochs_lib.o: aurochs/aurochs_pack.cmx
-	ocamlopt.opt -output-obj -o aurochs_lib.o unix.cmxa aurochs/aurochs_pack.cmx	
+	$(OCAMLOPT) -output-obj -o aurochs_lib.o unix.cmxa aurochs/aurochs_pack.cmx	
 
 CLEANFILES = *.o $(bin_PROGRAMS)
 
