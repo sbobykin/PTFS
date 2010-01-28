@@ -60,7 +60,8 @@ int ptfs_getattr(const char *path, struct stat *stbuf)
 	status = get_node(path, &cur_tr, &pars_obj);
 	switch(status) {
 	case isText:
-		stbuf->st_mode = S_IFREG | 0444;
+		//stbuf->st_mode = S_IFREG | 0444;
+		stbuf->st_mode = S_IFREG | 0644;
 		stbuf->st_nlink = 1;
 		if(cur_tr->t_element.t_node.n_attributes) {
 			text = &(cur_tr->t_element.t_node.n_attributes[0].a_value);
@@ -187,4 +188,6 @@ int ptfs_write (const char* path, const char* buf, size_t size, off_t offset,
 	{
 		return ptfs_write_to_parsed (&write_op_context);
 	}
+	
+	return ptfs_write_to_text (&write_op_context);
 }

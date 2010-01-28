@@ -30,7 +30,7 @@ char* grammar;
 
 size_t fparsed_size;
 
-char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf);
+char* map_file_to_str (char* pathname, int* size);
 int parse_file(char* file_name);
 void unparse_file(char* file_name);
 int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj);
@@ -61,3 +61,4 @@ int ptfs_read_from_text(struct rw_op_context* read_op_context);
 
 int ptfs_write_to_parsed(struct rw_op_context* write_op_context);
 int ptfs_write_to_unparse(struct rw_op_context* write_op_context);
+int ptfs_write_to_text(struct rw_op_context* write_op_context);

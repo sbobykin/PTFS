@@ -119,11 +119,14 @@ static int ptfs_opt_proc(void *data, const char *arg, int key,
 }
 
 
-char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
+//char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
+char* map_file_to_str (char* pathname, int* size)
 {
 	GError* error = NULL;
-	GMappedFile* mf = g_mapped_file_new(pathname, FALSE, &error);
-	char* data = g_mapped_file_get_contents(mf);
+	char* data = NULL;
+	//GMappedFile* mf = g_mapped_file_new(pathname, FALSE, &error);
+	//char* data = g_mapped_file_get_contents(mf);
+	g_file_get_contents(pathname, &data, size, &error);
 	if(!data) {
 		if(error)
 			fprintf(stderr, "%s\n", error->message);
@@ -134,11 +137,11 @@ char* map_file_to_str (char* pathname, int* size, GMappedFile** retmf)
 		return NULL;
 	}
 
-	if(size)
-		*size = g_mapped_file_get_length(mf); 
+	/*if(size)
+		*size = g_mapped_file_get_length(mf); */
 
-	if(retmf)
-		*retmf = mf;
+/*	if(retmf)
+		*retmf = NULL;*/
 
 	return data;
 }
@@ -160,7 +163,7 @@ int main(int argc, char** argv)
 	GList* mount_point = g_list_last (input_files);
 	if(options.grammar) {
 		/* read grammar */
-		grammar = map_file_to_str(options.grammar, NULL, NULL);
+		grammar = map_file_to_str(options.grammar, NULL);
 
 		/* read input */
 		GList* glist_iter = input_files;

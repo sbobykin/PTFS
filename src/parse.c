@@ -17,14 +17,15 @@
 int parse_file(char* file_name)
 {
 	int in_size;
-	GMappedFile* mf;
-	char* input = map_file_to_str(file_name, &in_size, &mf);
+	//GMappedFile* mf;
+	//char* input = map_file_to_str(file_name, &in_size, &mf);
+	char* input = map_file_to_str(file_name, &in_size);
 	if( ! (int) input |
 	    (int) g_hash_table_lookup (files, basename(file_name)) )
 		return 0;
 
 	struct pars_obj* pars_obj = malloc( sizeof(struct pars_obj));
-	pars_obj->mf = mf;
+	//pars_obj->mf = mf;
 
 
 	pars_obj->input = input;
@@ -127,7 +128,8 @@ void unparse_file(char* file_name)
 		peg_delete_context(pars_obj->cx);
 		staloc_dispose(pars_obj->s2);
 		staloc_dispose(pars_obj->st);
-		g_mapped_file_free(pars_obj->mf);
+		//g_mapped_file_free(pars_obj->mf);
+		free(pars_obj->input);
 		fparsed_size -= pars_obj->full_path_size - 1;
 		free(pars_obj->full_path);
 		g_hash_table_remove(files, file_name);
