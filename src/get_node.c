@@ -48,7 +48,7 @@ int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj)
 		
 		cur_tr = cur_tr->t_element.t_node.n_children;
 		if(!cur_tr) {
-			status = isDir;
+			status = unknown;
 			goto out;
 		}
 
