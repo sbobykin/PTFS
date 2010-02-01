@@ -15,11 +15,10 @@ int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj)
 	int nd_choosen = 1;
 	char symb_pos[4];
 	char* tok;
-	tree cur_tr = tr;
+	tree cur_tr;
 	node cur_nd;
 	struct pars_obj* pars_obj;
 	
-	*ret_tr = tr;
 	tok = strtok(path, "/");
 	if(tok!=NULL) {
 		pars_obj = g_hash_table_lookup(files, tok);

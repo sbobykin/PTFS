@@ -97,25 +97,45 @@ int ptfs_write_to_unparse(struct rw_op_context* write_op_context)
 	return size;
 }
 
+void right_down(tree cur_tr, int dlt)
+{
+	substring* text;
+	tree r_tr;
+	node_t* node;
+
+
+	for(r_tr = cur_tr; r_tr; r_tr=r_tr->t_sibling) {
+		node = &(r_tr->t_element.t_node);
+		text = &(node->n_attributes[0].a_value);
+
+		text->s_begin += dlt;
+		text->s_end += dlt;
+		if(node->n_children)
+			right_down(node->n_children, dlt);
+	}
+}
+
 void update(tree cur_tr, int dlt, int border)
 {
 	substring* text;
 	tree r_tr;
+	node_t* node;
 	tree u_tr;
+
 	if(!cur_tr->t_parent)
 		return;
-	for(r_tr = cur_tr; r_tr; r_tr=r_tr->t_sibling) {
-		node_t* node = &(r_tr->t_element.t_node);
-		text = &(node->n_attributes[0].a_value);
-		//printf("%d, %d\n", text, r_tr->t_parenti);
-		if(text->s_begin > border)
-			text->s_begin += dlt;
-		text->s_end += dlt;
-		u_tr = r_tr->t_parent;
-		while(u_tr) {
-			update(u_tr, dlt, border);
-			u_tr = u_tr->t_parent;
-		}
+
+	node = &(cur_tr->t_element.t_node);
+	text = &(node->n_attributes[0].a_value);
+	text->s_end+=dlt;
+	
+	right_down(cur_tr->t_sibling, dlt);
+
+	u_tr = cur_tr->t_parent;
+	if(u_tr) {
+		printf("\ndlt: %d\n", dlt);
+		update(u_tr, dlt, border);
+		u_tr = u_tr->t_parent;
 	}
 }
 
@@ -155,12 +175,7 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 		border = text->s_end;
 		//text->s_end += dlt;
 		
-		tree r_tr;
-		node_t* r_node;
-		for(r_tr = cur_tr; r_tr; r_tr=r_tr->t_sibling) {
-			r_node = &(cur_tr->t_element.t_node);
-			r_node->n_children = NULL;
-		}
+		cur_node->n_children = NULL;
 
 		update(cur_tr, dlt, border);
 

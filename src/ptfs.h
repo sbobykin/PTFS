@@ -10,7 +10,7 @@
 GHashTable* files;
 GHashTable* read_op_hash;
 
-tree tr;
+//tree tr;
 
 struct pars_obj {
 	GMappedFile* mf;

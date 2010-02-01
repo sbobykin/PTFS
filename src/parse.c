@@ -17,6 +17,7 @@
 int parse_file(char* file_name)
 {
 	int in_size;
+	tree tr;
 	//GMappedFile* mf;
 	//char* input = map_file_to_str(file_name, &in_size, &mf);
 	char* input = map_file_to_str(file_name, &in_size);
