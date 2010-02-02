@@ -115,27 +115,19 @@ void right_down(tree cur_tr, int dlt)
 	}
 }
 
-void update(tree cur_tr, int dlt, int border)
+void up_right_down(tree cur_tr, int dlt, int border)
 {
 	substring* text;
 	tree r_tr;
 	node_t* node;
 	tree u_tr;
 
-	if(!cur_tr->t_parent)
-		return;
-
-	node = &(cur_tr->t_element.t_node);
-	text = &(node->n_attributes[0].a_value);
-	text->s_end+=dlt;
+	for(u_tr = cur_tr; u_tr->t_parent; u_tr = u_tr->t_parent) {
+		node = &(u_tr->t_element.t_node);
+		text = &(node->n_attributes[0].a_value);
+		text->s_end+=dlt;
 	
-	right_down(cur_tr->t_sibling, dlt);
-
-	u_tr = cur_tr->t_parent;
-	if(u_tr) {
-		printf("\ndlt: %d\n", dlt);
-		update(u_tr, dlt, border);
-		u_tr = u_tr->t_parent;
+		right_down(u_tr->t_sibling, dlt);
 	}
 }
 
@@ -171,23 +163,15 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 		for(i = text->s_begin+size-1, j = text->s_end; 
 		    j < pars_obj->in_size; j++, i++)
 			new_input[i] = cur_input[j];
-
-		border = text->s_end;
-		//text->s_end += dlt;
 		
 		cur_node->n_children = NULL;
 
-		update(cur_tr, dlt, border);
-
+		up_right_down(cur_tr, dlt, border);
 
 		new_input[new_size]='\0';
 		pars_obj->input = new_input;
 		pars_obj->in_size = new_size;
 		free(cur_input);
-		//for(i=text->s_begin; i<text->s_begin+size; i++) {
-		//}
-		//len = text->s_end - text->s_begin;
-		//text->s_end -= 1;
 	}
 	else {
 		new_input = malloc(size);
