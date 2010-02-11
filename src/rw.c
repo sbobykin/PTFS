@@ -136,6 +136,7 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 	char* buf = write_op_context->buf;	
 	char* path = write_op_context->path;
 	size_t size = write_op_context->size;
+	off_t offset = write_op_context->offset;
 	struct pars_obj* pars_obj;
 	tree cur_tr;
 	tree tr;
@@ -152,15 +153,14 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 	node_t* cur_node = &(cur_tr->t_element.t_node);
 	if(cur_node->n_attributes) {
 		text = &(cur_node->n_attributes[0].a_value);
-		int dlt = size - (text->s_end - text->s_begin);
-		int new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size;
+		int dlt = size - (text->s_end - text->s_begin - offset);
+		int new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size + offset;
 		new_input = malloc(new_size + 1);
 
-		memcpy(new_input, cur_input, text->s_begin);
-	
-		memcpy(new_input + text->s_begin, buf, size);
-
-		memcpy(new_input + text->s_begin + size, cur_input + text->s_end,
+		memcpy(new_input, cur_input, text->s_begin + offset);
+		memcpy(new_input + text->s_begin + offset, buf, size);
+		memcpy(new_input + text->s_begin + offset + size, 
+		       cur_input + text->s_end,
 		       pars_obj->in_size - text->s_end);
 
 		cur_node->n_children = NULL;
@@ -183,11 +183,5 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 		cur_node->n_children = NULL;
 	}
 
-
-	char fname[size];
-	memcpy(fname, buf, size);
-	fname[size-1] = '\0';
-
-	printf("%s\n", fname);
 	return size;
 }
