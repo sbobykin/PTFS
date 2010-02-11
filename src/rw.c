@@ -152,18 +152,17 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 	node_t* cur_node = &(cur_tr->t_element.t_node);
 	if(cur_node->n_attributes) {
 		text = &(cur_node->n_attributes[0].a_value);
-		int dlt = (size -1) - (text->s_end - text->s_begin);
-		int new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size -1;
+		int dlt = size - (text->s_end - text->s_begin);
+		int new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size;
 		new_input = malloc(new_size + 1);
 
-		for(i=0; i<text->s_begin; i++)
-			new_input[i] = cur_input[i];
-		for(i=text->s_begin, j=0; i<text->s_begin+size-1; i++, j++)
-			new_input[i] = buf[j];
-		for(i = text->s_begin+size-1, j = text->s_end; 
-		    j < pars_obj->in_size; j++, i++)
-			new_input[i] = cur_input[j];
-		
+		memcpy(new_input, cur_input, text->s_begin);
+	
+		memcpy(new_input + text->s_begin, buf, size);
+
+		memcpy(new_input + text->s_begin + size, cur_input + text->s_end,
+		       pars_obj->in_size - text->s_end);
+
 		cur_node->n_children = NULL;
 
 		up_right_down(cur_tr, dlt, border);
