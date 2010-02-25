@@ -1,3 +1,12 @@
+Date: 2010-02-25
+Files: src/aurochs/aurochs.ml, src/aurochs/aurochs_native.c 
+
+Modification in the aurochs files.
+See 
+	'git diff ec094cc97216b9ac1..df625cfd6584fa5125' and 
+	'git log df625cfd6584fa5125' 
+for details.
+
 Date: 2009-09-08
 Directories: aurochs/ , src/aurochs
 The files 
