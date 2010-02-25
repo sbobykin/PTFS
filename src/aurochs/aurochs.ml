@@ -8,7 +8,7 @@ type binary = string
 type ('node, 'attribute) program
 type generic_program = (int, int) program
 
-exception Parse_error of int
+exception Parse_error of string
 exception Error of string
 exception Compile_error of exn
 
@@ -19,7 +19,7 @@ external get_constructor_name : ('node, 'attribute) program -> int -> string = "
 external get_attribute_count : ('node, 'attribute) program -> int = "caml_aurochs_get_attribute_count" "caml_aurochs_get_attribute_count"
 external get_attribute_name : ('node, 'attribute) program -> int -> string = "caml_aurochs_get_attribute_name" "caml_aurochs_get_attribute_name"
 external program_of_binary : binary -> ('node, 'attribute) program = "caml_aurochs_program_of_binary" "caml_aurochs_program_of_binary"
-external parse_internal : ('node, 'attribute) program -> string -> int ref -> ('node, 'attribute) Peg.poly_positioned_tree option =
+external parse_internal : ('node, 'attribute) program -> string -> int ref -> int ref -> ('node, 'attribute) Peg.poly_positioned_tree option =
    "caml_aurochs_parse" "caml_aurochs_parse"
 
 let constructors pg =
@@ -31,9 +31,10 @@ let attributes pg =
   Array.init m (get_attribute_name pg)
 
 let parse pg u =
-  let error_pos = ref 0 in
-  match parse_internal pg u error_pos with
-  | None -> raise (Parse_error !error_pos)
+  let line = ref 0
+  and col = ref 0 in
+  match parse_internal pg u line col  with
+  | None -> raise (Parse_error (sf "line: %d, col: %d" !line !col))
   | Some t -> t
 
 let convert_tree pg t =

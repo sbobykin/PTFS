@@ -378,9 +378,9 @@ value caml_aurochs_get_attribute_name(value programv, value iv)
   CAMLreturn(caml_copy_string((char *) pg->np_attributes[i].ns_chars));
 }
 
-value caml_aurochs_parse(value programv, value uv, value errorv)
+value caml_aurochs_parse(value programv, value uv, value line, value col)
 {
-  CAMLparam3(programv, uv, errorv);
+  CAMLparam4(programv, uv, line, col);
   CAMLlocal1(treev);
   uint8_t *input;
   size_t input_length;
@@ -423,7 +423,22 @@ value caml_aurochs_parse(value programv, value uv, value errorv)
     int pos;
 
     pos = cnog_error_position(cx, pg);
-    Store_field(errorv, 0, Val_int(pos));
+
+    char* input = cx->cx_input; 
+    int k,i,n;
+    for(k = 0, i = 0, n = 0; i < pos - 1; i++)
+    {
+      if(input[i] == '\n') {
+        n++;
+        k = 0;
+      }
+      else
+        k++;
+    }
+    
+    //Store_field(errorv, 0, Val_int(pos));
+    Store_field(line, 0, Val_int(n+1));
+    Store_field(col, 0, Val_int(k+1));
     peg_delete_context(cx);
     staloc_dispose(s);
     CAMLreturn(none); /* None */
