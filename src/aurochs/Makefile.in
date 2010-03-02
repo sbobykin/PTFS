@@ -16,7 +16,7 @@ CLIST = alloc.o  aurochs_native.o  cnog.o  cnog_unpack.o\
 
 all: $(MLLIST) $(CLIST)
 	$(OCAMLOPT) -pack -o aurochs_pack.cmx $(MLLIST) 
-	$(OCAMLMKLIB) -o aurochs $(CLIST)
+	$(OCAMLMKLIB) -failsafe -o aurochs $(CLIST)
 
 .SUFFIXES: .ml .mli .cmx .cmi
 

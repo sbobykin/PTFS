@@ -1,4 +1,5 @@
 #include <caml/mlvalues.h>
+#include <caml/alloc.h>
 #include <caml/callback.h>
 
 int compile_stage;

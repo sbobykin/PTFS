@@ -5,6 +5,8 @@
 */
 
 /* This file contains reuse notes. See the file 'REUSE' for details. */
+#define _GNU_SOURCE
+#include <string.h>
 
 #include <stdio.h>
 #include <stdlib.h>
