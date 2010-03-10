@@ -8,6 +8,8 @@
 
 #include "ptfs.h"
 
+#include <string.h>
+
 int get_node(const char* path, tree* ret_tr, struct pars_obj** ret_pars_obj)
 {
 	int i;
