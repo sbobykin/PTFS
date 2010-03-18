@@ -19,7 +19,6 @@ struct pars_obj {
 	size_t full_path_size;
 	unsigned int in_size;
 
-	peg_context_t *cx;
 	staloc_t *s2;
 	staloc_t *st;
 

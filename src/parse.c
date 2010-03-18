@@ -103,8 +103,8 @@ int parse_file(char* file_name)
 					printf("Error at %d\n", error_pos);
 				}
 
-				pars_obj->cx = cx;
-				//?peg_delete_context(cx);
+				//pars_obj->cx = cx;
+				peg_delete_context(cx);
 			}
 			pars_obj->s2 = s2;
 			//?staloc_dispose(s2);
@@ -128,7 +128,6 @@ void unparse_file(char* file_name)
 	g_hash_table_lookup_extended (files, file_name, &orig_key, &pars_obj);
 
 	if(pars_obj) {
-		peg_delete_context(pars_obj->cx);
 		staloc_dispose(pars_obj->s2);
 		staloc_dispose(pars_obj->st);
 		//g_mapped_file_free(pars_obj->mf);
