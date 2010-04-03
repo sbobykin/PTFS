@@ -146,6 +146,7 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 	size_t len, str_len;
 	int border;
 	char* new_input;
+	int new_size;
 
 	int status = get_node(path, &cur_tr, &pars_obj);
 	char* cur_input = pars_obj->input;
@@ -154,7 +155,7 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 	if(cur_node->n_attributes) {
 		text = &(cur_node->n_attributes[0].a_value);
 		int dlt = size - (text->s_end - text->s_begin - offset);
-		int new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size + offset;
+		new_size = pars_obj->in_size - (text->s_end - text->s_begin) + size + offset;
 		new_input = malloc(new_size + 1);
 
 		memcpy(new_input, cur_input, text->s_begin + offset);
@@ -173,11 +174,13 @@ int ptfs_write_to_text(struct rw_op_context* write_op_context)
 		free(cur_input);
 	}
 	else {
-		new_input = malloc(size);
-		memcpy(new_input, buf, size);
+		new_size = offset + size;
+		new_input = malloc(new_size);
+		memcpy(new_input, cur_input, offset);
+		memcpy(new_input + offset, buf, size);
 
 		pars_obj->input = new_input;
-		pars_obj->in_size = size-1;
+		pars_obj->in_size = new_size;
 		free(cur_input);
 
 		cur_node->n_children = NULL;
