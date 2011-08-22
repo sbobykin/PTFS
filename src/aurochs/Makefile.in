@@ -24,9 +24,9 @@ grammar.cmi: grammar.mli
 	$(OCAMLC) grammar.mli
 
 .ml.cmx:
-	$(OCAMLOPT) -for-pack Aurochs_pack -I . -c -o $@  $<
+	$(OCAMLOPT) -ccopt -fPIC -for-pack Aurochs_pack -I . -c -o $@  $<
 .c.o: 
-	$(OCAMLOPT) -ccopt -I. -ccopt -g -ccopt -O2 -c $<
+	$(OCAMLOPT) -ccopt -fPIC -ccopt -I. -ccopt -g -ccopt -O2 -c $<
 
 clean:
 	rm genmachine.byte nog_packer.ml cnog_unpack.c cnog_unpack.h\
