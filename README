@@ -15,7 +15,7 @@ On debian you can simply run:
 	$ apt-get install ocaml-nox
 
 To build ptfs, run:
-	$ ./configure (or ./autogen.sh)
+	$ ./configure (or ./autogen.sh in git repo)
 	$ make
 
 INSTALLATION
@@ -38,7 +38,7 @@ To unmount use:
 
 AUROCHS CHANGES.
 ================
-PTFS uses Aurohcs (http://aurochs.fr) as 
+PTFS uses Aurohcs (https://github.com/berke/aurochs) as 
 a backend parser (code in 'src/aurochs' subdir).
 Aurochs slightly modified for the PTFS needs.
 To find out modifications use 'ptfs hack' phrase in the Aurochs code.
