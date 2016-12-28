@@ -1,5 +1,5 @@
 AC_PREREQ(2.61)
-AC_INIT([ptfs], [0.0.4.1], [])
+AC_INIT([ptfs], [0.0.4.1], [https://github.com/sbobykin/ptfs])
 AM_INIT_AUTOMAKE([1.9])
 
 AC_PROG_CC
